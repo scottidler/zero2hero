@@ -1,10 +1,22 @@
 #ifndef __Z2H_PARSER__
 #define __Z2H_PARSER__ = 1
 
+#include <vector>
+
 namespace z2h {
 
     class Token;
     class Grammar;
+
+    class ParserException : public std::exception {
+        std::string _message;
+    public:
+        ParserException(const std::string &message)
+            : _message(message) {}
+        virtual const char * what() const throw() {
+            return _message.c_str();
+        }
+    }
 
     template<typename TAst>
     typedef struct Parser {
@@ -29,8 +41,9 @@ namespace z2h {
         }
 
         std::string Load(const std::string &filename) {
-            if (!exists(filename))
-                SotaException(filename + " doesn't exist or is unreadable");
+            struct stat buffer;
+            if (stat (filename.c_str(), &buffer) != 0)
+                ParserException(filename + " doesn't exist or is unreadable");
             std::ifstream file(filename);
             std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             return text;
@@ -65,7 +78,7 @@ namespace z2h {
                     }
                 }
                 if (position == end) {
-                    throw SotaException("Parser::Scan: invalid symbol");
+                    throw ParserException("Parser::Scan: invalid symbol");
                 }
                 return new Token(match, source, index, end - index, skip);
             }
@@ -134,7 +147,7 @@ namespace z2h {
         Token * Consume(const size_t &expected, const std::string &message) {
             auto token = Consume();
             if (token->symbol.type != expected)
-                throw SotaException(message);
+                throw ParserException(message);
             return token;
         }
 
