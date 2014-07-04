@@ -1,7 +1,12 @@
 #ifndef __Z2H_PARSER__
 #define __Z2H_PARSER__ = 1
 
+#include <cmath>
+#include <string>
 #include <vector>
+#include <fstream>
+#include <iostream>
+#include <sys/stat.h>
 
 #include "grammar.h"
 
@@ -100,21 +105,21 @@ namespace z2h {
             return Expression();
         }
 
-        TAst Expression(size_t rbp/* = 0 */) {
+        TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
-            if (curr->symbol.type)
+            if (curr->symbol->type)
                 return nullptr;
 
             TAst left = curr->Nud(this, curr);
 
             auto *next = LookAhead(1);
-            if (next->symbol.type)
+            if (next->symbol->type)
                 return left;
 
-            while (rbp < next->symbol.lbp) {
+            while (rbp < next->symbol->lbp) {
                 next = Consume();
-                if (next->symbol.type)
+                if (next->symbol->type)
                     return left;
 
                 left = next->Led(this, left, next);
@@ -144,7 +149,7 @@ namespace z2h {
         }
 
         Token<TAst> * Consume() {
-            auto la1 = LookAhead(1);
+            LookAhead(1);
             auto curr = Emit();
             position += curr->length;
             return curr;
@@ -152,7 +157,7 @@ namespace z2h {
 
         Token<TAst> * Consume(const size_t &expected, const std::string &message) {
             auto token = Consume();
-            if (token->symbol.type != expected)
+            if (token->symbol->type != expected)
                 throw ParserException(message);
             return token;
         }

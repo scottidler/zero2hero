@@ -29,7 +29,7 @@ namespace z2h {
         bool            skip;
 
         Token()
-            : symbol(Symbol<TAst>())
+            : symbol(new Symbol<TAst>())
             , source("")
             , position(0)
             , length(0)
