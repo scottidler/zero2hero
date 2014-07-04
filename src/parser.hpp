@@ -3,9 +3,14 @@
 
 #include <vector>
 
+#include "grammar.h"
+
 namespace z2h {
 
+    template <typename TAst>
     class Token;
+
+    template <typename TAst>
     class Grammar;
 
     class ParserException : public std::exception {
@@ -16,16 +21,17 @@ namespace z2h {
         virtual const char * what() const throw() {
             return _message.c_str();
         }
-    }
+    };
 
     template<typename TAst>
-    typedef struct Parser {
+    class Parser {
+    public:
 
-        Grammar<TAst>           *grammar;
-        std::string             source;
-        size_t                  position;
-        std::vector<Token *>    tokens;
-        size_t                  index;
+        Grammar<TAst>               *grammar;
+        std::string                 source;
+        size_t                      position;
+        std::vector<Token<TAst> *>  tokens;
+        size_t                      index;
 
         ~Parser() {
             while (!tokens.empty())
@@ -49,24 +55,24 @@ namespace z2h {
             return text;
         }
 
-        Token * Take(Token *token) {
+        Token<TAst> * Take(Token<TAst> *token) {
             tokens.push_back(token);
             return token;
         }
 
-        Token * Emit() {
+        Token<TAst> * Emit() {
             if (index < tokens.size()) {
                 return tokens[index++];
             }
             return Scan();
         }
 
-        Token * Scan() {
+        Token<TAst> * Scan() {
 
             size_t end = position;
-            Symbol *match = nullptr;
+            Symbol<TAst> *match = nullptr;
             bool skip = false;
-            if (postion < source.length()) {
+            if (position < source.length()) {
                 for (auto symbol : grammar->Symbols()) {
                     long delta = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
                     if (delta) {
@@ -80,9 +86,9 @@ namespace z2h {
                 if (position == end) {
                     throw ParserException("Parser::Scan: invalid symbol");
                 }
-                return new Token(match, source, index, end - index, skip);
+                return new Token<TAst>(match, source, index, end - index, skip);
             }
-            return new Token(); //eof
+            return new Token<TAst>(); //eof
         }
         TAst ParseFile(const std::string &filename) {
             auto source = Load(filename);
@@ -96,13 +102,13 @@ namespace z2h {
 
         TAst Expression(size_t rbp/* = 0 */) {
 
-            Token *curr = Consume();
+            auto *curr = Consume();
             if (curr->symbol.type)
                 return nullptr;
 
             TAst left = curr->Nud(this, curr);
 
-            Token *next = LookAhead(1);
+            auto *next = LookAhead(1);
             if (next->symbol.type)
                 return left;
 
@@ -121,12 +127,12 @@ namespace z2h {
             return TAst(); //FIXME: implement this
         }
 
-        Token * LookAhead(size_t distance) {
+        Token<TAst> * LookAhead(size_t distance) {
             if (distance == 0)
                 return tokens[index];
 
-            while(distance > tokens.size() - postion) {
-                Token *token = Scan();
+            while(distance > tokens.size() - position) {
+                auto *token = Scan();
                 if (token->skip) {
                     index += token->length;
                     continue;
@@ -137,14 +143,14 @@ namespace z2h {
             return Emit();
         }
 
-        Token * Consume() {
+        Token<TAst> * Consume() {
             auto la1 = LookAhead(1);
-            curr = Emit();
-            postion += curr->length;
+            auto curr = Emit();
+            position += curr->length;
             return curr;
         }
 
-        Token * Consume(const size_t &expected, const std::string &message) {
+        Token<TAst> * Consume(const size_t &expected, const std::string &message) {
             auto token = Consume();
             if (token->symbol.type != expected)
                 throw ParserException(message);
@@ -159,7 +165,7 @@ namespace z2h {
             return 0;
         }
         
-    } Parser;
+    };
 
 }
 

@@ -5,26 +5,42 @@
 #include <iostream>
 #include <functional>
 
+#include "token.hpp"
+#include "parser.hpp"
+
 namespace z2h {
-    
+   
+    template <typename TAst> 
     class Token;
+
+    template <typename TAst> 
     class Parser;
+
+    template <typename TAst> 
     class Symbol;
 
-    using ScanFunc = std::fucntional<long(Symbol *, const std::string &, long)>;
-    using NudFunc = std::functional<Ast *(Parser *, Token *)>;    
-    using LedFunc = std::fucntional<Ast *(Parser *, TAst left, Token *)>;
-    using StdFunc = std::functional<Ast *()>;
+    template <typename TAst>
+    using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, long)>;
 
-    typedef struct Symbol {
+    template <typename TAst>
+    using NudFunc = std::function<TAst(Parser<TAst> *, Token<TAst> *)>;    
+    template <typename TAst>
+    using LedFunc = std::function<TAst(Parser<TAst> *, TAst left, Token<TAst> *)>;
+    template <typename TAst>
+    using StdFunc = std::function<TAst(Parser<TAst> *)>;
+
+    template <typename TAst>
+    class Symbol {
+    public:
 
         long        type;
-        long        ldp;
+        long        lbp;
         std::string pattern;
 
-        NudFunc     Nud;
-        LedFunc     Led;
-        StdFunc     Std;
+        ScanFunc<TAst>  Scan;
+        NudFunc<TAst>   Nud;
+        LedFunc<TAst>   Led;
+        StdFunc<TAst>   Std;
 
         Symbol()
             : type(0)
@@ -36,7 +52,7 @@ namespace z2h {
             , Std(nullptr) {
         }
 
-        Symbol(long type, long lbp, std::string pattern, ScanFunc scan, NudFunc nud, LedFunc led, StdFunc std)
+        Symbol(long type, long lbp, std::string pattern, ScanFunc<TAst> scan, NudFunc<TAst> nud, LedFunc<TAst> led, StdFunc<TAst> std)
             : type(type)
             , pattern(pattern)
             , lbp(lbp)
@@ -58,12 +74,13 @@ namespace z2h {
             return type != rhs.type;
         }
 
+        /*
         std::ostream & operator<<(std::ostream &out, const Symbol &symbol) {
             return out << "Symbol(type=" << symbol.type << ", pattern=" << symbol.pattern << ", lbp=" << symbol.lbp <<  ")";
         }
+        */
 
-
-    } Symbol;
+    };
 }
 
 #endif /*__Z2H_SYMBOL__*/
