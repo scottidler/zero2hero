@@ -8,12 +8,17 @@
 #include <iostream>
 #include <sys/stat.h>
 
+#include "token.hpp"
+#include "symbol.hpp"
 #include "grammar.h"
 
 namespace z2h {
 
     template <typename TAst>
     class Token;
+
+    template <typename TAst>
+    class Symbol;
 
     template <typename TAst>
     class Grammar;

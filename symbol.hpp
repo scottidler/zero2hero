@@ -23,11 +23,11 @@ namespace z2h {
     using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, long)>;
 
     template <typename TAst>
+    using StdFunc = std::function<TAst(Parser<TAst> *)>;
+    template <typename TAst>
     using NudFunc = std::function<TAst(Parser<TAst> *, Token<TAst> *)>;    
     template <typename TAst>
     using LedFunc = std::function<TAst(Parser<TAst> *, TAst left, Token<TAst> *)>;
-    template <typename TAst>
-    using StdFunc = std::function<TAst(Parser<TAst> *)>;
 
     template <typename TAst>
     class Symbol {
@@ -38,28 +38,28 @@ namespace z2h {
         std::string pattern;
 
         ScanFunc<TAst>  Scan;
+        StdFunc<TAst>   Std;
         NudFunc<TAst>   Nud;
         LedFunc<TAst>   Led;
-        StdFunc<TAst>   Std;
 
         Symbol()
             : type(0)
             , lbp(0)
             , pattern("")
             , Scan(nullptr)
+            , Std(nullptr)
             , Nud(nullptr)
-            , Led(nullptr)
-            , Std(nullptr) {
+            , Led(nullptr) {
         }
 
-        Symbol(long type, long lbp, std::string pattern, ScanFunc<TAst> scan, NudFunc<TAst> nud, LedFunc<TAst> led, StdFunc<TAst> std)
+        Symbol(long type, long lbp, std::string pattern, ScanFunc<TAst> scan, StdFunc<TAst> std, NudFunc<TAst> nud, LedFunc<TAst> led)
             : type(type)
             , pattern(pattern)
             , lbp(lbp)
             , Scan(scan)
+            , Std(std)
             , Nud(nud)
-            , Led(led)
-            , Std(std) {
+            , Led(led) {
         }
 
         operator bool() {
