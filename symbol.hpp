@@ -23,11 +23,11 @@ namespace z2h {
     using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, size_t)>;
 
     template <typename TAst>
-    using StdFunc = std::function<TAst(Parser<TAst> *)>;
+    using StdFunc = std::function<TAst()>;
     template <typename TAst>
-    using NudFunc = std::function<TAst(Parser<TAst> *, Token<TAst> *)>;    
+    using NudFunc = std::function<TAst(Token<TAst> *)>;
     template <typename TAst>
-    using LedFunc = std::function<TAst(Parser<TAst> *, TAst left, Token<TAst> *)>;
+    using LedFunc = std::function<TAst(TAst left, Token<TAst> *)>;
 
     template <typename TAst>
     class Symbol {

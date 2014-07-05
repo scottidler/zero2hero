@@ -48,16 +48,16 @@ namespace z2h {
             return source.substr(position, length);
         }
 
-        TAst Nud(Parser<TAst> *parser, Token<TAst> *token) {
-            return symbol->Nud(parser, token);
+        TAst Std() {
+            return symbol->Std();
         }
 
-        TAst Led(Parser<TAst> *parser, TAst ast, Token<TAst> *token) {
-            return symbol->Led(parser, ast, token);
+        TAst Nud(Token<TAst> *token) {
+            return symbol->Nud(token);
         }
 
-        TAst Std(Parser<TAst> *parser) {
-            return symbol->Std(parser);
+        TAst Led(TAst ast, Token<TAst> *token) {
+            return symbol->Led(ast, token);
         }
 
         operator bool() {

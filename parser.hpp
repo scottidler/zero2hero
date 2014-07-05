@@ -116,7 +116,7 @@ namespace z2h {
             if (curr->symbol->type)
                 return nullptr;
 
-            TAst left = curr->Nud(this, curr);
+            TAst left = curr->Nud(curr);
 
             auto *next = LookAhead(1);
             if (next->symbol->type)
@@ -127,7 +127,7 @@ namespace z2h {
                 if (next->symbol->type)
                     return left;
 
-                left = next->Led(this, left, next);
+                left = next->Led(left, next);
             }
 
             return left;
