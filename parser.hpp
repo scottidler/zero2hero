@@ -47,7 +47,7 @@ namespace z2h {
         }
 
         Parser()
-            , source("")
+            : source("")
             , position(0)
             , tokens({})
             , index(0) {
