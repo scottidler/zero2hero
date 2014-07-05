@@ -24,8 +24,8 @@ namespace z2h {
 
         Symbol<TAst>    *symbol;
         std::string     source;
-        long            position;
-        long            length;
+        size_t          position;
+        size_t          length;
         bool            skip;
 
         Token()

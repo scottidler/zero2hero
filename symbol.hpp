@@ -20,7 +20,7 @@ namespace z2h {
     class Symbol;
 
     template <typename TAst>
-    using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, long)>;
+    using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, size_t)>;
 
     template <typename TAst>
     using StdFunc = std::function<TAst(Parser<TAst> *)>;
@@ -33,9 +33,9 @@ namespace z2h {
     class Symbol {
     public:
 
-        long        type;
-        long        lbp;
-        std::string pattern;
+        size_t          type;
+        size_t          lbp;
+        std::string     pattern;
 
         ScanFunc<TAst>  Scan;
         StdFunc<TAst>   Std;
@@ -52,10 +52,10 @@ namespace z2h {
             , Led(nullptr) {
         }
 
-        Symbol(long type, long lbp, std::string pattern, ScanFunc<TAst> scan, StdFunc<TAst> std, NudFunc<TAst> nud, LedFunc<TAst> led)
+        Symbol(size_t type, size_t lbp, std::string pattern, ScanFunc<TAst> scan, StdFunc<TAst> std, NudFunc<TAst> nud, LedFunc<TAst> led)
             : type(type)
-            , pattern(pattern)
             , lbp(lbp)
+            , pattern(pattern)
             , Scan(scan)
             , Std(std)
             , Nud(nud)

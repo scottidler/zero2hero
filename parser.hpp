@@ -10,7 +10,6 @@
 
 #include "token.hpp"
 #include "symbol.hpp"
-#include "grammar.h"
 
 namespace z2h {
 
@@ -37,7 +36,6 @@ namespace z2h {
     class Parser {
     public:
 
-        Grammar<TAst>               *grammar;
         std::string                 source;
         size_t                      position;
         std::vector<Token<TAst> *>  tokens;
@@ -48,13 +46,15 @@ namespace z2h {
                 delete tokens.back(), tokens.pop_back();
         }
 
-        Parser(Grammar<TAst> *grammar)
-            : grammar(grammar)
+        Parser()
             , source("")
             , position(0)
             , tokens({})
             , index(0) {
         }
+
+        // Symbols must be defined by the inheriting parser
+        virtual std::vector<Symbol<TAst> *> Symbols() = 0;
 
         std::string Load(const std::string &filename) {
             struct stat buffer;
@@ -83,7 +83,7 @@ namespace z2h {
             Symbol<TAst> *match = nullptr;
             bool skip = false;
             if (position < source.length()) {
-                for (auto symbol : grammar->Symbols()) {
+                for (auto symbol : Symbols()) {
                     long delta = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
                     if (delta) {
                         if (abs(delta) > 0 || (match != nullptr && symbol->lbp > match->lbp && position + abs(delta) == end)) {
