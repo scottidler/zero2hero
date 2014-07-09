@@ -21,7 +21,6 @@ namespace z2h {
 
     template <typename TAst>
     using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, size_t)>;
-
     template <typename TAst>
     using StdFunc = std::function<TAst()>;
     template <typename TAst>
