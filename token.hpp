@@ -12,7 +12,7 @@ namespace z2h {
     template<typename TAst>
     class Ast;
 
-    template<typename TAst>
+    template<typename TAst, typename TParser>
     class Parser;
 
     template<typename TAst>

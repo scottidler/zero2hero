@@ -12,6 +12,7 @@
 
 #include "token.hpp"
 #include "symbol.hpp"
+#include "binder.hpp"
 
 using namespace std::placeholders;
 
@@ -36,15 +37,15 @@ namespace z2h {
         }
     };
 
-    template<typename TAst>
-    class Parser {
+    template <typename TAst, typename TParser>
+    class Parser : public Binder<TAst, TParser> {
     public:
-
+/*
         typedef long (*ScanPtr)(Symbol<TAst> *symbol, const std::string &source, size_t index);
         typedef TAst (*StdPtr)();
         typedef TAst (*NudPtr)(Token<TAst> *token);
         typedef TAst (*LedPtr)(TAst left, Token<TAst> *token);
-
+*/
 
         std::string                 source;
         size_t                      position;
@@ -62,7 +63,7 @@ namespace z2h {
             , tokens({})
             , index(0) {
         }
-
+/*
         ScanFunc<TAst> BindScan(nullptr_t method) { return nullptr; }
         ScanFunc<TAst> BindScan(ScanPtr method) { return std::bind(method, this, _1, _2, _3); }
 
@@ -74,7 +75,7 @@ namespace z2h {
 
         LedFunc<TAst> BindLed(nullptr_t method) { return nullptr; }
         LedFunc<TAst> BindLed(LedPtr method) { return std::bind(method, this, _1, _2); }
-
+*/
         // Symbols must be defined by the inheriting parser
         virtual std::vector<Symbol<TAst> *> Symbols() = 0;
 

@@ -7,27 +7,31 @@
 
 #include "token.hpp"
 #include "parser.hpp"
+#include "binder.hpp"
 
 namespace z2h {
    
     template <typename TAst> 
     class Token;
 
-    template <typename TAst> 
+    template <typename TAst, typename TParser> 
     class Parser;
 
     template <typename TAst> 
     class Symbol;
-
+/*
     template <typename TAst>
     using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, size_t)>;
+
     template <typename TAst>
     using StdFunc = std::function<TAst()>;
+
     template <typename TAst>
     using NudFunc = std::function<TAst(Token<TAst> *)>;
+
     template <typename TAst>
     using LedFunc = std::function<TAst(TAst left, Token<TAst> *)>;
-
+*/
     template <typename TAst>
     class Symbol {
     public:
