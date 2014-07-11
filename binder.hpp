@@ -48,7 +48,13 @@ namespace z2h {
     template <typename TAst, typename TParser>
     struct Binder {
 
+        static constexpr nullptr_t Nullptr = nullptr;
+
         StdFunc<TAst> BindStd(nullptr_t method) {
+            return nullptr;
+        }
+
+        StdFunc<TAst> BindStd(const nullptr_t *method) {
             return nullptr;
         }
 
@@ -60,11 +66,19 @@ namespace z2h {
             return nullptr;
         }
 
+        NudFunc<TAst> BindNud(const nullptr_t *method) {
+            return nullptr;
+        }
+
         NudFunc<TAst> BindNud(NudPtr<TAst, TParser> method) {
             return std::bind(method, static_cast<TParser *>(this), _1);
         }
 
         LedFunc<TAst> BindLed(nullptr_t method) {
+            return nullptr;
+        }
+
+        LedFunc<TAst> BindLed(const nullptr_t *method) {
             return nullptr;
         }
 
@@ -76,10 +90,17 @@ namespace z2h {
             return nullptr;
         }
 
+        ScanFunc<TAst> BindScan(const nullptr_t *method) {
+            return nullptr;
+        }
+
         ScanFunc<TAst> BindScan(ScanPtr<TAst, TParser> method) {
             return std::bind(method, static_cast<TParser *>(this), _1, _2, _3);
         }
     };
+
+    template <typename TAst, typename TParser>
+    constexpr nullptr_t Binder<TAst, TParser>::Nullptr;
 
 }
 
