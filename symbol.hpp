@@ -19,19 +19,7 @@ namespace z2h {
 
     template <typename TAst> 
     class Symbol;
-/*
-    template <typename TAst>
-    using ScanFunc = std::function<long(Symbol<TAst> *, const std::string &, size_t)>;
 
-    template <typename TAst>
-    using StdFunc = std::function<TAst()>;
-
-    template <typename TAst>
-    using NudFunc = std::function<TAst(Token<TAst> *)>;
-
-    template <typename TAst>
-    using LedFunc = std::function<TAst(TAst left, Token<TAst> *)>;
-*/
     template <typename TAst>
     class Symbol {
     public:
@@ -76,12 +64,6 @@ namespace z2h {
         bool operator!=(const Symbol &rhs) {
             return type != rhs.type;
         }
-
-        /*
-        std::ostream & operator<<(std::ostream &out, const Symbol &symbol) {
-            return out << "Symbol(type=" << symbol.type << ", pattern=" << symbol.pattern << ", lbp=" << symbol.lbp <<  ")";
-        }
-        */
 
     };
 }

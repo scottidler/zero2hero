@@ -71,11 +71,11 @@ namespace z2h {
         LedFunc<TAst> BindLed(LedPtr<TAst, TParser> method) {
             return std::bind(method, static_cast<TParser *>(this), _1, _2);
         }
-/*
+
         ScanFunc<TAst> BindScan(nullptr_t method) {
             return nullptr;
         }
-*/
+
         ScanFunc<TAst> BindScan(ScanPtr<TAst, TParser> method) {
             return std::bind(method, static_cast<TParser *>(this), _1, _2, _3);
         }
