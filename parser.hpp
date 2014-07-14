@@ -117,28 +117,41 @@ namespace z2h {
         TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
-            if (curr->symbol->type)
+            if (curr->symbol->type) {
+                std::cout << "first used" << std::endl;
                 return nullptr;
+            }
 
-            TAst left = curr->Nud(curr);
+            TAst left = curr->symbol->Nud(curr);
 
             auto *next = LookAhead(1);
-            if (next->symbol->type)
+            if (next->symbol->type) {
+                std::cout << "second used" << std::endl;
                 return left;
+            }
 
             while (rbp < next->symbol->lbp) {
                 next = Consume();
-                if (next->symbol->type)
+                if (next->symbol->type) {
+                    std::cout << "third used" << std::endl;
                     return left;
+                }
 
-                left = next->Led(left, next);
+                left = next->symbol->Led(left, next);
             }
 
             return left;
         }
 
         TAst Statement() {
-            return TAst(); //FIXME: implement this
+            auto *la1 = LookAhead(1);
+            if (la1->symbol->Std) {
+                Consume();
+                return la1->symbol->Std();
+            }
+            auto ast = Expression();
+            Consume(1, "EndOfStatement expected!");
+            return ast;
         }
 
         Token<TAst> * LookAhead(size_t distance) {
