@@ -48,18 +48,6 @@ namespace z2h {
             return source.substr(position, length);
         }
 
-        TAst Std() {
-            return symbol->Std();
-        }
-
-        TAst Nud(Token<TAst> *token) {
-            return symbol->Nud(token);
-        }
-
-        TAst Led(TAst ast, Token<TAst> *token) {
-            return symbol->Led(ast, token);
-        }
-
         operator bool() {
            return symbol == true;
         }
