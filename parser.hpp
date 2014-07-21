@@ -87,9 +87,13 @@ namespace z2h {
             Symbol<TAst> *match = nullptr;
             bool skip = false;
             if (position < source.length()) {
+                std::cout << "position: " << position << std::endl;
+                std::cout << "Symbols().size(): " << Symbols().size() << std::endl;
                 for (auto symbol : Symbols()) {
+                    std::cout << "symbol: " << *symbol << std::endl;
                     long delta = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
                     if (delta) {
+                        std::cout << "found: " << source.substr(position, abs(delta) ) << std::endl;
                         if (abs(delta) > 0 || (match != nullptr && symbol->lbp > match->lbp && position + abs(delta) == end)) {
                             match = symbol;
                             end = position + abs(delta);
@@ -100,8 +104,10 @@ namespace z2h {
                 if (position == end) {
                     throw ParserException("Parser::Scan: invalid symbol");
                 }
-                return new Token<TAst>(match, source, index, end - index, skip);
+                std::cout << "match: " << *match << std::endl;
+                return new Token<TAst>(match, source, position, end - position, skip);
             }
+            std::cout << "failed to match anything" << std::endl;
             return new Token<TAst>(); //eof
         }
         TAst ParseFile(const std::string &filename) {
@@ -158,10 +164,10 @@ namespace z2h {
             if (distance == 0)
                 return tokens[index];
 
-            while(distance > tokens.size() - position) {
+            while(distance > tokens.size() - index) {
                 auto *token = Scan();
                 if (token->skip) {
-                    index += token->length;
+                    position += token->length;
                     continue;
                 }
                 Take(Scan());
