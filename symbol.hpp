@@ -10,7 +10,7 @@
 #include "binder.hpp"
 
 namespace z2h {
-   
+
     template <typename TAst> 
     class Token;
 
@@ -63,6 +63,18 @@ namespace z2h {
 
         bool operator!=(const Symbol &rhs) {
             return type != rhs.type;
+        }
+
+        friend std::ostream & operator<<(std::ostream &out, const Symbol &symbol) {
+            return out
+                << "(Symbol: type=" << symbol.type
+                << " lbp=" << symbol.lbp
+                << " pattern=" << symbol.pattern
+                << " Scan=" << (symbol.Scan != nullptr ? "true" : "null")
+                << " Std=" << (symbol.Std != nullptr ? "true" : "null")
+                << " Nud=" << (symbol.Nud != nullptr ? "true" : "null")
+                << " Led=" << (symbol.Led != nullptr ? "true" : "null")
+                << ")" << std::endl;
         }
 
     };
