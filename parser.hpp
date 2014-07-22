@@ -87,13 +87,9 @@ namespace z2h {
             Symbol<TAst> *match = nullptr;
             bool skip = false;
             if (position < source.length()) {
-                std::cout << "position: " << position << std::endl;
-                std::cout << "Symbols().size(): " << Symbols().size() << std::endl;
                 for (auto symbol : Symbols()) {
-                    std::cout << "symbol: " << *symbol << std::endl;
                     long delta = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
                     if (delta) {
-                        std::cout << "found: " << source.substr(position, abs(delta) ) << std::endl;
                         if (abs(delta) > 0 || (match != nullptr && symbol->lbp > match->lbp && position + abs(delta) == end)) {
                             match = symbol;
                             end = position + abs(delta);
@@ -104,7 +100,6 @@ namespace z2h {
                 if (position == end) {
                     throw ParserException("Parser::Scan: invalid symbol");
                 }
-                std::cout << "match: " << *match << std::endl;
                 return new Token<TAst>(match, source, position, end - position, skip);
             }
             std::cout << "failed to match anything" << std::endl;
@@ -123,27 +118,19 @@ namespace z2h {
         TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
-            if (curr->symbol->type) {
-                std::cout << "first used" << std::endl;
-                return nullptr;
-            }
+            std::cout << "curr: " << *curr << std::endl;
+            if (nullptr == curr->symbol->Nud)
+                throw ParserException("unexpected: nullptr == Nud");
 
             TAst left = curr->symbol->Nud(curr);
 
             auto *next = LookAhead(1);
-            if (next->symbol->type) {
-                std::cout << "second used" << std::endl;
-                return left;
-            }
-
+            std::cout << "next: " << *next << std::endl;
             while (rbp < next->symbol->lbp) {
                 next = Consume();
-                if (next->symbol->type) {
-                    std::cout << "third used" << std::endl;
-                    return left;
-                }
-
+                std::cout << "inner next: " << *next << std::endl;
                 left = next->symbol->Led(left, next);
+                std::cout << "left: " << left->Print() << std::endl;
             }
 
             return left;
