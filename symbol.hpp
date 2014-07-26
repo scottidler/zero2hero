@@ -74,7 +74,7 @@ namespace z2h {
                 << " Std=" << (symbol.Std != nullptr ? "true" : "null")
                 << " Nud=" << (symbol.Nud != nullptr ? "true" : "null")
                 << " Led=" << (symbol.Led != nullptr ? "true" : "null")
-                << ")" << std::endl;
+                << ")";
         }
 
     };
