@@ -60,6 +60,58 @@ namespace z2h {
         // Symbols must be defined by the inheriting parser
         virtual std::vector<Symbol<TAst> *> Symbols() = 0;
 
+        Token<TAst> * Scan() {
+
+            auto eof = Symbols()[0];
+            Symbol<TAst> *match = nullptr;
+            if (position < source.length()) {
+                size_t end = position;
+                bool skip = false;
+                for (auto symbol : Symbols()) {
+                    long length = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
+                    if (position + abs(length) > end || (match != nullptr && symbol->lbp > match->lbp && position + abs(length) == end)) {
+                        match = symbol;
+                        end = position + abs(length);
+                        skip = length < 0;
+                    }
+                }
+                if (position == end) {
+                    throw ParserException("Parser::Scan: invalid symbol");
+                }
+                return new Token<TAst>(match, source, position, end - position, skip);
+            }
+            std::cout << "failed to match anything" << std::endl;
+            return new Token<TAst>(eof, source, position, 0, true); //eof
+        }
+
+        Token<TAst> * LookAhead(size_t distance) {
+            if (distance == 0)
+                return tokens[index];
+            while (distance >= tokens.size() - index) {
+                auto token = Scan();
+                tokens.push_back(token);
+                position += token->length;
+            }
+            return tokens[index + distance];
+        }
+
+        Token<TAst> * Consume(Symbol<TAst> *expected = nullptr, const std::string &message = "") {
+            auto token = LookAhead(1);
+            ++index;
+            if (nullptr != expected && *expected != *token->symbol)
+                throw ParserException(message);
+            return token;
+        }
+
+        std::vector<Token<TAst> *> Tokenize() {
+            auto eof = Symbols()[0];
+            auto token = Consume();
+            while (*eof != *token->symbol) {
+                token = Consume();
+            }
+            return tokens;
+        }
+
         std::string Load(const std::string &filename) {
             struct stat buffer;
             if (stat (filename.c_str(), &buffer) != 0)
@@ -68,7 +120,7 @@ namespace z2h {
             std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             return text;
         }
-
+/*
         Token<TAst> * Take(Token<TAst> *token) {
             tokens.push_back(token);
             return token;
@@ -105,6 +157,7 @@ namespace z2h {
             std::cout << "failed to match anything" << std::endl;
             return new Token<TAst>(); //eof
         }
+*/
         TAst ParseFile(const std::string &filename) {
             auto source = Load(filename);
             return Parse(source);
@@ -114,7 +167,6 @@ namespace z2h {
             this->source = source;
             return Expression();
         }
-
         TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
@@ -146,7 +198,7 @@ namespace z2h {
             Consume(1, "EndOfStatement expected!");
             return ast;
         }
-
+/*
         Token<TAst> * LookAhead(size_t distance) {
             if (distance == 0)
                 return tokens[index];
@@ -176,7 +228,7 @@ namespace z2h {
                 throw ParserException(message);
             return token;
         }
-
+*/
         size_t Line() {
             return 0;
         }
