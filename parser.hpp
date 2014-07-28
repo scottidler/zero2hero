@@ -54,7 +54,7 @@ namespace z2h {
             : source("")
             , position(0)
             , tokens({})
-            , index(-1) {
+            , index(0) {
         }
 
         // Symbols must be defined by the inheriting parser
@@ -80,19 +80,31 @@ namespace z2h {
                 }
                 return new Token<TAst>(match, source, position, end - position, skip);
             }
-            //std::cout << "failed to match anything" << std::endl;
-            return new Token<TAst>(eof, source, position, 0, true); //eof
+            return new Token<TAst>(eof, source, position, 0, false); //eof
         }
 
-        Token<TAst> * LookAhead(size_t distance) {
-            if (distance == 0)
+        Token<TAst> * LookAhead(size_t distance, bool skips = false) {
+            if (distance == 0) {
                 return tokens[index];
-            while (distance >= tokens.size() - index) {
-                auto token = Scan();
-                tokens.push_back(token);
-                position += token->length;
             }
-            return tokens[index + distance];
+            Token<TAst> *token = nullptr;
+            size_t d = distance;
+            while (index + d >= tokens.size()) {
+                token = Scan();
+                position += token->length;
+                tokens.push_back(token);
+                if (!skips && token->skip)
+                    ++d;
+            }
+            if (skips)
+                return tokens[index + distance - 1];
+            int i = index;
+            for (; i < tokens.size() && distance; ++i) {
+                if (!tokens[i]->skip)
+                    --distance;
+            }
+            token = tokens[i - 1];
+            return token;
         }
 
         Token<TAst> * Consume(Symbol<TAst> *expected = nullptr, const std::string &message = "") {

@@ -53,7 +53,13 @@ namespace z2h {
         }
 
         friend std::ostream & operator<<(std::ostream &out, const Token &token) {
-            return out << "(Token: symbol=" << *token.symbol <<  ", Value()=" << token.Value() << ")";
+            return out
+                << "(Token: value=" << token.Value()
+                << " position=" << token.position
+                << " length=" << token.length
+                << " skip=" << (token.skip ? "true" : "false")
+                << " symbol=" << *token.symbol
+                <<  ")";
         }
     };
 
