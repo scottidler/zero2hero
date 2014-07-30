@@ -39,7 +39,7 @@ namespace z2h {
             , _line(line)
             , _message(message) {
             std::ostringstream out;
-            out << _filename << ":" << _line << " " << _message << std::endl;
+            out << _file << ":" << _line << " " << _message << std::endl;
             _what = out.str();
         }
         virtual const char * what() const throw() {
