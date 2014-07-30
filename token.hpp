@@ -49,7 +49,7 @@ namespace z2h {
         }
 
         operator bool() {
-           return symbol == true;
+           return symbol != nullptr;
         }
 
         friend std::ostream & operator<<(std::ostream &out, const Token &token) {
