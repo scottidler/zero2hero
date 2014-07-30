@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <stddef.h>
 #include <sys/stat.h>
@@ -28,12 +29,24 @@ namespace z2h {
     class Grammar;
 
     class ParserException : public std::exception {
-        std::string _message;
+        const char *_filename;
+        size_t _line;
+        const std::string _message;
+        std::string _what;
     public:
-        ParserException(const std::string &message)
-            : _message(message) {}
+        ParserException(const char *filename, size_t line, const std::string &message)
+            : _filename(filename)
+            , _line(line)
+            , _message(message) {
+            std::ostringstream out;
+            out << "filename=" << _filename
+                << " line=" << _line
+                << " msg=" << _message
+                << std::endl;
+            _what = out.str();
+        }
         virtual const char * what() const throw() {
-            return _message.c_str();
+            return _what.c_str();
         }
     };
 
@@ -76,13 +89,13 @@ namespace z2h {
                     }
                 }
                 if (position == end) {
-                    throw ParserException("Parser::Scan: invalid symbol");
+                    throw ParserException(__FILE__, __LINE__, "Parser::Scan: invalid symbol");
                 }
                 return new Token<TAst>(match, source, position, end - position, skip);
             }
             return new Token<TAst>(eof, source, position, 0, false); //eof
         }
-
+/*
         Token<TAst> * LookAhead(size_t distance, bool skips = false) {
             if (distance == 0) {
                 return tokens[index];
@@ -93,6 +106,8 @@ namespace z2h {
                 token = Scan();
                 position += token->length;
                 tokens.push_back(token);
+                if (!token->symbol->type)
+                    return token;
                 if (!skips && token->skip)
                     ++d;
             }
@@ -106,12 +121,31 @@ namespace z2h {
             token = tokens[i - 1];
             return token;
         }
+*/
+        Token<TAst> * LookAhead(size_t distance, bool skips = false) {
+            Token<TAst> *token = nullptr;
+            auto i = index;
+            while (distance) {
+                if (i < tokens.size()) {
+                    token = tokens[i];
+                }
+                else {
+                    token = Scan();
+                    position += token->length;
+                    tokens.push_back(token);
+                }
+                if (skips || !token->skip)
+                    --distance;
+                ++i;
+            }
+            return token;
+        }
 
         Token<TAst> * Consume(Symbol<TAst> *expected = nullptr, const std::string &message = "") {
             auto token = LookAhead(1);
-            ++index;
+            while (token->position != tokens[index++]->position);
             if (nullptr != expected && *expected != *token->symbol)
-                throw ParserException(message);
+                throw ParserException(__FILE__, __LINE__, message);
             return token;
         }
 
@@ -127,7 +161,7 @@ namespace z2h {
         std::string Load(const std::string &filename) {
             struct stat buffer;
             if (stat (filename.c_str(), &buffer) != 0)
-                ParserException(filename + " doesn't exist or is unreadable");
+                ParserException(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
             std::ifstream file(filename);
             std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             return text;
@@ -146,8 +180,11 @@ namespace z2h {
         TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
-            if (nullptr == curr->symbol->Nud)
-                throw ParserException("unexpected: nullptr == Nud");
+            if (nullptr == curr->symbol->Nud) {
+                std::ostringstream out;
+                out << "unexpected: nullptr==Nud curr=" << *curr;
+                throw ParserException(__FILE__, __LINE__, out.str());
+            }
 
             TAst left = curr->symbol->Nud(curr);
 
