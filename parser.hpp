@@ -95,33 +95,7 @@ namespace z2h {
             }
             return new Token<TAst>(eof, source, position, 0, false); //eof
         }
-/*
-        Token<TAst> * LookAhead(size_t distance, bool skips = false) {
-            if (distance == 0) {
-                return tokens[index];
-            }
-            Token<TAst> *token = nullptr;
-            size_t d = distance;
-            while (index + d >= tokens.size()) {
-                token = Scan();
-                position += token->length;
-                tokens.push_back(token);
-                if (!token->symbol->type)
-                    return token;
-                if (!skips && token->skip)
-                    ++d;
-            }
-            if (skips)
-                return tokens[index + distance - 1];
-            int i = index;
-            for (; i < tokens.size() && distance; ++i) {
-                if (!tokens[i]->skip)
-                    --distance;
-            }
-            token = tokens[i - 1];
-            return token;
-        }
-*/
+
         Token<TAst> * LookAhead(size_t distance, bool skips = false) {
             Token<TAst> *token = nullptr;
             auto i = index;
