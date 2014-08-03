@@ -25,14 +25,11 @@ namespace z2h {
     template <typename TAst>
     class Symbol;
 
-    template <typename TAst>
-    class Grammar;
-
     class ParserException : public std::exception {
-        const char *_file;
-        size_t _line;
-        const std::string _message;
-        std::string _what;
+        const char          *_file;
+        size_t              _line;
+        const std::string   _message;
+        std::string         _what;
     public:
         ParserException(const char *file, size_t line, const std::string &message)
             : _file(file)
@@ -93,7 +90,7 @@ namespace z2h {
             return new Token<TAst>(eof, source, position, 0, false); //eof
         }
 
-        Token<TAst> * LookAhead(size_t distance, bool skips = false) {
+        Token<TAst> * LookAhead(size_t &distance, bool skips = false) {
             Token<TAst> *token = nullptr;
             auto i = index;
             while (distance) {
@@ -109,12 +106,14 @@ namespace z2h {
                     --distance;
                 ++i;
             }
+            distance = i - index;
             return token;
         }
 
         Token<TAst> * Consume(Symbol<TAst> *expected = nullptr, const std::string &message = "") {
-            auto token = LookAhead(1);
-            while (token->position != tokens[index++]->position);
+            size_t distance = 1;
+            auto token = LookAhead(distance);
+            index += distance;
             if (nullptr != expected && *expected != *token->symbol)
                 throw ParserException(__FILE__, __LINE__, message);
             return token;
@@ -159,7 +158,8 @@ namespace z2h {
 
             TAst left = curr->symbol->Nud(curr);
 
-            auto *next = LookAhead(1);
+            size_t distance = 1;
+            auto *next = LookAhead(distance);
             while (rbp < next->symbol->lbp) {
                 next = Consume();
                 left = next->symbol->Led(left, next);
@@ -169,7 +169,8 @@ namespace z2h {
         }
 
         TAst Statement() {
-            auto *la1 = LookAhead(1);
+            size_t distance = 1;
+            auto *la1 = LookAhead(distance);
             if (la1->symbol->Std) {
                 Consume();
                 return la1->symbol->Std();
