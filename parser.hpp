@@ -119,7 +119,24 @@ namespace z2h {
             return token;
         }
 
-        std::vector<Token<TAst> *> Tokenize() {
+        std::string Load(const std::string &filename) {
+            struct stat buffer;
+            if (stat(filename.c_str(), &buffer) != 0)
+                ParserException(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
+            std::ifstream file(filename);
+            std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            source = text;
+            return text;
+        }
+
+        std::vector<Token<TAst> *> TokenizeFile(const std::string &filename) {
+            Load(filename);
+            return Tokenize(source);
+        }
+
+        std::vector<Token<TAst> *> Tokenize(std::string source) {
+            this->index = 0;
+            this->source = source;
             auto eof = Symbols()[0];
             auto token = Consume();
             while (*eof != *token->symbol) {
@@ -128,21 +145,14 @@ namespace z2h {
             return tokens;
         }
 
-        std::string Load(const std::string &filename) {
-            struct stat buffer;
-            if (stat (filename.c_str(), &buffer) != 0)
-                ParserException(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
-            std::ifstream file(filename);
-            std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            return text;
-        }
-
         TAst ParseFile(const std::string &filename) {
-            auto source = Load(filename);
+            //auto source = Load(filename);
+            Load(filename);
             return Parse(source);
         }
 
         TAst Parse(std::string source) {
+            this->index = 0;
             this->source = source;
             return Expression();
         }
