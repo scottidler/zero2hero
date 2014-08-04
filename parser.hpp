@@ -67,6 +67,15 @@ namespace z2h {
         // Symbols must be defined by the inheriting parser
         virtual std::vector<Symbol<TAst> *> Symbols() = 0;
 
+        std::string Open(const std::string &filename) {
+            struct stat buffer;
+            if (stat(filename.c_str(), &buffer) != 0)
+                ParserException(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
+            std::ifstream file(filename);
+            std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            return text;
+        }
+
         Token<TAst> * Scan() {
 
             auto eof = Symbols()[0];
@@ -119,18 +128,8 @@ namespace z2h {
             return token;
         }
 
-        std::string Load(const std::string &filename) {
-            struct stat buffer;
-            if (stat(filename.c_str(), &buffer) != 0)
-                ParserException(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
-            std::ifstream file(filename);
-            std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            source = text;
-            return text;
-        }
-
         std::vector<Token<TAst> *> TokenizeFile(const std::string &filename) {
-            Load(filename);
+            auto source = Open(filename);
             return Tokenize(source);
         }
 
@@ -146,8 +145,7 @@ namespace z2h {
         }
 
         TAst ParseFile(const std::string &filename) {
-            //auto source = Load(filename);
-            Load(filename);
+            auto source = Open(filename);
             return Parse(source);
         }
 
