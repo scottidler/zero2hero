@@ -81,22 +81,22 @@ namespace z2h {
             auto eof = Symbols()[0];
             Symbol<TAst> *match = nullptr;
             if (position < source.length()) {
-                size_t end = position;
+                long length = 0;
                 bool skip = false;
                 for (auto symbol : Symbols()) {
-                    long length = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
-                    if (position + abs(length) > end || (match != nullptr && symbol->lbp > match->lbp && position + abs(length) == end)) {
+                    long result = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
+                    if (abs(result) > length || (match != nullptr && symbol->lbp > match->lbp && abs(result) == length)) {
                         match = symbol;
-                        end = position + abs(length);
-                        skip = length < 0;
+                        length = abs(result);
+                        skip = result < 0;
                     }
                 }
-                if (position == end) {
+                if (0 == length) {
                     throw ParserException(__FILE__, __LINE__, "Parser::Scan: invalid symbol");
                 }
-                return new Token<TAst>(match, source, position, end - position, skip);
+                return new Token<TAst>(match, source.substr(position, length), position, length, skip);
             }
-            return new Token<TAst>(eof, source, position, 0, false); //eof
+            return new Token<TAst>(eof, "EOF", position, 0, false); //eof
         }
 
         Token<TAst> * LookAhead(size_t &distance, bool skips = false) {

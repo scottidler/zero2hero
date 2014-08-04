@@ -23,29 +23,25 @@ namespace z2h {
     public:
 
         Symbol<TAst>    *symbol;
-        std::string     source;
+        std::string     value;
         size_t          position;
         size_t          length;
         bool            skip;
 
         Token()
             : symbol(new Symbol<TAst>())
-            , source("")
+            , value("")
             , position(0)
             , length(0)
             , skip(false) {
         }
 
-        Token(Symbol<TAst> *symbol, const std::string &source, size_t position, size_t length, bool skip)
+        Token(Symbol<TAst> *symbol, std::string value, size_t position, size_t length, bool skip)
             : symbol(symbol)
-            , source(source)
+            , value(value)
             , position(position)
             , length(length)
             , skip(skip) {
-        }
-
-        std::string Value() const {
-            return source.substr(position, length);
         }
 
         operator bool() {
@@ -54,7 +50,7 @@ namespace z2h {
 
         friend std::ostream & operator<<(std::ostream &out, const Token &token) {
             return out
-                << "(Token: value=" << token.Value()
+                << "(Token: value=" << token.value
                 << " position=" << token.position
                 << " length=" << token.length
                 << " skip=" << (token.skip ? "true" : "false")
