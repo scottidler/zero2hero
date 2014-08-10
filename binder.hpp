@@ -31,7 +31,7 @@ namespace z2h {
     using LedFunc = std::function<TAst(TAst left, Token<TAst> *token)>;
 
     template <typename TAst>
-    using ScanFunc = std::function<long(Symbol<TAst> *symbol, const std::string &source, size_t lbp)>;
+    using ScanFunc = std::function<Token<TAst> *(Symbol<TAst> *symbol, const std::string &source, size_t lbp)>;
 
     template <typename TAst, typename TParser>
     using StdPtr = TAst (TParser::*)();
@@ -43,7 +43,7 @@ namespace z2h {
     using LedPtr = TAst (TParser::*)(TAst left, Token<TAst> *token);
 
     template <typename TAst, typename TParser>
-    using ScanPtr = long (TParser::*)(Symbol<TAst> *symbol, const std::string &source, size_t lbp);
+    using ScanPtr = Token<TAst> * (TParser::*)(Symbol<TAst> *symbol, const std::string &source, size_t lbp);
 
     template <typename TAst, typename TParser>
     struct Binder {

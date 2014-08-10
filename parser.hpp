@@ -79,22 +79,24 @@ namespace z2h {
         Token<TAst> * Scan() {
 
             auto eof = Symbols()[0];
-            Symbol<TAst> *match = nullptr;
+            Token<TAst> *match = nullptr;
             if (position < source.length()) {
-                long length = 0;
-                bool skip = false;
                 for (auto symbol : Symbols()) {
-                    long result = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
-                    if (abs(result) > length || (match != nullptr && symbol->lbp > match->lbp && abs(result) == length)) {
-                        match = symbol;
-                        length = abs(result);
-                        skip = result < 0;
+                    auto token = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
+                    if (nullptr == match) {
+                        match = token;
+                    }
+                    else if (nullptr != token && (token->length > match->length || (token->symbol->lbp > match->symbol->lbp && token->length == match->length))) {
+                        delete match;
+                        match = token;
+                    } else {
+                        delete token;
                     }
                 }
-                if (0 == length) {
+                if (nullptr == match) {
                     throw ParserException(__FILE__, __LINE__, "Parser::Scan: invalid symbol");
                 }
-                return new Token<TAst>(match, source.substr(position, length), position, length, skip);
+                return match;
             }
             return new Token<TAst>(eof, "EOF", position, 0, false); //eof
         }

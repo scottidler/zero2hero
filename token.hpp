@@ -36,7 +36,7 @@ namespace z2h {
             , skip(false) {
         }
 
-        Token(Symbol<TAst> *symbol, std::string value, size_t position, size_t length, bool skip)
+        Token(Symbol<TAst> *symbol, std::string value, size_t position, size_t length, bool skip = false)
             : symbol(symbol)
             , value(value)
             , position(position)
