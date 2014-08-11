@@ -51,6 +51,16 @@ namespace z2h {
         // Symbols must be defined by the inheriting parser
         virtual std::vector<Symbol<TAst> *> Symbols() = 0;
 
+        // the default for the eof symbol is first in in the list of symbols
+        virtual Symbol<TAst> * EofSymbol() {
+            return Symbols()[0];
+        }
+
+        // the default for the eos symbol is second in in the list of symbols
+        virtual Symbol<TAst> * EosSymbol() {
+            return Symbols()[1];
+        }
+
         std::string Open(const std::string &filename) {
             struct stat buffer;
             if (stat(filename.c_str(), &buffer) != 0)
@@ -62,7 +72,7 @@ namespace z2h {
 
         Token<TAst> * Scan() {
 
-            auto eof = Symbols()[0];
+            auto eof = EofSymbol();
             Token<TAst> *match = nullptr;
             if (position < source.length()) {
                 for (auto symbol : Symbols()) {
@@ -122,7 +132,7 @@ namespace z2h {
         std::vector<Token<TAst> *> Tokenize(std::string source) {
             this->index = 0;
             this->source = source;
-            auto eof = Symbols()[0];
+            auto eof = EofSymbol();
             auto token = Consume();
             while (*eof != *token->symbol) {
                 token = Consume();
