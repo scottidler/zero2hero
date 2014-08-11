@@ -25,25 +25,6 @@ namespace z2h {
     template <typename TAst>
     class Symbol;
 
-    class ParserException : public std::exception {
-        const char          *_file;
-        size_t              _line;
-        const std::string   _message;
-        std::string         _what;
-    public:
-        ParserException(const char *file, size_t line, const std::string &message)
-            : _file(file)
-            , _line(line)
-            , _message(message) {
-            std::ostringstream out;
-            out << _file << ":" << _line << " " << _message << std::endl;
-            _what = out.str();
-        }
-        virtual const char * what() const throw() {
-            return _what.c_str();
-        }
-    };
-
     template <typename TAst, typename TParser>
     struct Parser : public Binder<TAst, TParser> {
 
@@ -64,13 +45,16 @@ namespace z2h {
             , index(0) {
         }
 
+        // Exception must be defined by the inheriting parser, throw exceptions defined there
+        virtual std::exception Exception(const char *file, size_t line, const std::string &message = "") = 0;
+
         // Symbols must be defined by the inheriting parser
         virtual std::vector<Symbol<TAst> *> Symbols() = 0;
 
         std::string Open(const std::string &filename) {
             struct stat buffer;
             if (stat(filename.c_str(), &buffer) != 0)
-                ParserException(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
+                Exception(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
             std::ifstream file(filename);
             std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             return text;
@@ -94,7 +78,7 @@ namespace z2h {
                     }
                 }
                 if (nullptr == match) {
-                    throw ParserException(__FILE__, __LINE__, "Parser::Scan: invalid symbol");
+                    throw Exception(__FILE__, __LINE__, "Parser::Scan: invalid symbol");
                 }
                 return match;
             }
@@ -126,7 +110,7 @@ namespace z2h {
             auto token = LookAhead(distance);
             index += distance;
             if (nullptr != expected && *expected != *token->symbol)
-                throw ParserException(__FILE__, __LINE__, message);
+                throw Exception(__FILE__, __LINE__, message);
             return token;
         }
 
@@ -163,7 +147,7 @@ namespace z2h {
             if (nullptr == curr->symbol->Nud) {
                 std::ostringstream out;
                 out << "unexpected: nullptr==Nud curr=" << *curr;
-                throw ParserException(__FILE__, __LINE__, out.str());
+                throw Exception(__FILE__, __LINE__, out.str());
             }
 
             TAst left = curr->symbol->Nud(curr);
