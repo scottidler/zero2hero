@@ -119,8 +119,12 @@ namespace z2h {
             size_t distance = 1;
             auto token = LookAhead(distance);
             index += distance;
-            if (nullptr != expected && *expected != *token->symbol)
-                throw Exception(__FILE__, __LINE__, message);
+            if (nullptr != expected && *expected != *token->symbol) {
+                std::cout << "expected=" << *expected << std:: endl;
+                std::cout << "token->symbol=" << *token->symbol << std:: endl;
+                std::cout << "message=" << message << std::endl;
+                throw Exception(__FILE__, __LINE__, (message.empty() ? "consume failed" : message));
+            }
             return token;
         }
 
@@ -148,13 +152,15 @@ namespace z2h {
         TAst Parse(std::string source) {
             this->index = 0;
             this->source = source;
-            return Expression();
+            //return Expression();
+            return Statement();
         }
 
         TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
             if (nullptr == curr->symbol->Nud) {
+                std::cout << "no Nud: curr=" << *curr << std::endl;
                 std::ostringstream out;
                 out << "unexpected: nullptr==Nud curr=" << *curr;
                 throw Exception(__FILE__, __LINE__, out.str());
@@ -165,8 +171,13 @@ namespace z2h {
             size_t distance = 1;
             auto *next = LookAhead(distance);
             while (rbp < next->symbol->lbp) {
+                std::cout << "before next=" << *next << std::endl;
                 next = Consume();
+                std::cout << "after next=" << *next << std::endl;
+                std::cout << "rbp=" << rbp << " < lbp=" << next->symbol->lbp << std::endl;
+                std::cout << "before" << std::endl;
                 left = next->symbol->Led(left, next);
+                std::cout << "after" << std::endl;
             }
 
             return left;
@@ -174,13 +185,30 @@ namespace z2h {
 
         TAst Statement() {
             size_t distance = 1;
+            std::cout << "pos=" << position << std::endl;
+            std::cout << "tokens count=" << tokens.size() << std::endl;
             auto *la1 = LookAhead(distance);
-            if (la1->symbol->Std) {
+            std::cout << "pos=" << position << std::endl;
+            std::cout << "tokens count=" << tokens.size() << std::endl;
+            std::cout << "tokens[0]=" << *tokens[0] << std::endl;
+            if (nullptr != la1->symbol->Std) {
+                std::cout << "Std" << std::endl;
                 Consume();
+                std::cout << "Consume" << std::endl;
                 return la1->symbol->Std();
             }
+            std::cout << "not Std" << std::endl;
+            std::cout << "pos=" << position << std::endl;
+            std::cout << "tokens count=" << tokens.size() << std::endl;
             auto ast = Expression();
-            Consume(1, "EndOfStatement expected!");
+            std::cout << "after" << std::endl;
+            std::cout << "ast=" << ast->Print() << std::endl;
+            auto eos = EosSymbol();
+            std::cout << "eos=" << *eos << std::endl;
+
+            std::cout << "position=" << position << std::endl;
+            std::cout << "source=" << source.substr(position, source.length() - position) << std::endl;
+            Consume(eos, "EndOfStatement expected!");
             return ast;
         }
 
