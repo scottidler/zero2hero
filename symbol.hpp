@@ -11,6 +11,26 @@
 
 namespace z2h {
 
+    inline std::string escape(std::string text) {
+        std::string result = "";
+        for (char c : text) {
+            switch (c) {
+                case '\n':
+                    result += "\\n";
+                    break;
+                case '\r':
+                    result += "\\r";
+                    break;
+                case '\t':
+                    result += "\\t";
+                    break;
+                default:
+                    result += c;
+            }
+        }
+        return result;
+    }
+
     template <typename TAst> 
     class Token;
 
@@ -69,7 +89,7 @@ namespace z2h {
             return out
                 << "(Symbol: type=" << symbol.type
                 << " lbp=" << symbol.lbp
-                << " pattern=" << symbol.pattern
+                << " pattern=" << escape(symbol.pattern)
                 << " Scan=" << (symbol.Scan != nullptr ? "true" : "null")
                 << " Std=" << (symbol.Std != nullptr ? "true" : "null")
                 << " Nud=" << (symbol.Nud != nullptr ? "true" : "null")
