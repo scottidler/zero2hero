@@ -107,8 +107,9 @@ namespace z2h {
                     position += token->length;
                     tokens.push_back(token);
                 }
-                if (skips || !token->skip)
+                if (skips || !token->skip) {
                     --distance;
+                }
                 ++i;
             }
             distance = i - index;
@@ -120,8 +121,8 @@ namespace z2h {
             auto token = LookAhead(distance);
             index += distance;
             if (nullptr != expected && *expected != *token->symbol) {
-                std::cout << "expected=" << *expected << std:: endl;
-                std::cout << "token->symbol=" << *token->symbol << std:: endl;
+                std::cout << "expected      = " << *expected << std:: endl;
+                std::cout << "token->symbol = " << *token->symbol << std:: endl;
                 std::cout << "message=" << message << std::endl;
                 throw Exception(__FILE__, __LINE__, (message.empty() ? "consume failed" : message));
             }
@@ -152,62 +153,41 @@ namespace z2h {
         TAst Parse(std::string source) {
             this->index = 0;
             this->source = source;
-            //return Expression();
             return Statement();
         }
 
         TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
-            if (nullptr == curr->symbol->Nud) {
-                std::cout << "no Nud: curr=" << *curr << std::endl;
-                std::ostringstream out;
-                out << "unexpected: nullptr==Nud curr=" << *curr;
-                throw Exception(__FILE__, __LINE__, out.str());
-            }
-
-            TAst left = curr->symbol->Nud(curr);
-
             size_t distance = 1;
             auto *next = LookAhead(distance);
+            TAst left = curr->symbol->Nud(curr);
             while (rbp < next->symbol->lbp) {
-                std::cout << "before next=" << *next << std::endl;
-                next = Consume();
-                std::cout << "after next=" << *next << std::endl;
-                std::cout << "rbp=" << rbp << " < lbp=" << next->symbol->lbp << std::endl;
-                std::cout << "before" << std::endl;
-                left = next->symbol->Led(left, next);
-                std::cout << "after" << std::endl;
-            }
+                curr = Consume();
+                size_t distance = 1;
+                next = LookAhead(distance);
 
+                if (nullptr == curr->symbol->Led) {
+                    std::cout << __LINE__ << "no Led: curr=" << *curr << std::endl;
+                    std::ostringstream out;
+                    out << "unexpected: nullptr==Led curr=" << *curr;
+                    throw Exception(__FILE__, __LINE__, out.str());
+                }
+
+                left = curr->symbol->Led(left, curr);
+            }
             return left;
         }
 
         TAst Statement() {
             size_t distance = 1;
-            std::cout << "pos=" << position << std::endl;
-            std::cout << "tokens count=" << tokens.size() << std::endl;
             auto *la1 = LookAhead(distance);
-            std::cout << "pos=" << position << std::endl;
-            std::cout << "tokens count=" << tokens.size() << std::endl;
-            std::cout << "tokens[0]=" << *tokens[0] << std::endl;
             if (nullptr != la1->symbol->Std) {
-                std::cout << "Std" << std::endl;
                 Consume();
-                std::cout << "Consume" << std::endl;
                 return la1->symbol->Std();
             }
-            std::cout << "not Std" << std::endl;
-            std::cout << "pos=" << position << std::endl;
-            std::cout << "tokens count=" << tokens.size() << std::endl;
             auto ast = Expression();
-            std::cout << "after" << std::endl;
-            std::cout << "ast=" << ast->Print() << std::endl;
             auto eos = EosSymbol();
-            std::cout << "eos=" << *eos << std::endl;
-
-            std::cout << "position=" << position << std::endl;
-            std::cout << "source=" << source.substr(position, source.length() - position) << std::endl;
             Consume(eos, "EndOfStatement expected!");
             return ast;
         }
