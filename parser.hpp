@@ -70,7 +70,7 @@ namespace z2h {
             return text;
         }
 
-        Token<TAst> * Scan() {
+        virtual Token<TAst> * Scan() {
 
             auto eof = EofSymbol();
             Token<TAst> *match = nullptr;
@@ -95,7 +95,7 @@ namespace z2h {
             return new Token<TAst>(eof, "EOF", position, 0, false); //eof
         }
 
-        Token<TAst> * LookAhead(size_t &distance, bool skips = false) {
+        virtual Token<TAst> * LookAhead(size_t &distance, bool skips = false) {
             Token<TAst> *token = nullptr;
             auto i = index;
             while (distance) {
@@ -116,7 +116,7 @@ namespace z2h {
             return token;
         }
 
-        Token<TAst> * Consume(Symbol<TAst> *expected = nullptr, const std::string &message = "") {
+        virtual Token<TAst> * Consume(Symbol<TAst> *expected = nullptr, const std::string &message = "") {
             size_t distance = 1;
             auto token = LookAhead(distance);
             index += distance;
@@ -150,13 +150,13 @@ namespace z2h {
             return Parse(source);
         }
 
-        TAst Parse(std::string source) {
+        virtual TAst Parse(std::string source) {
             this->index = 0;
             this->source = source;
             return Statement();
         }
 
-        TAst Expression(size_t rbp = 0) {
+        virtual TAst Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
             size_t distance = 1;
@@ -179,7 +179,7 @@ namespace z2h {
             return left;
         }
 
-        TAst Statement() {
+        virtual TAst Statement() {
             size_t distance = 1;
             auto *la1 = LookAhead(distance);
             if (nullptr != la1->symbol->Std) {
@@ -187,9 +187,14 @@ namespace z2h {
                 return la1->symbol->Std();
             }
             auto ast = Expression();
+            return ast;
+        }
+
+        virtual std::vector<TAst> Statements() {
             auto eos = EosSymbol();
             Consume(eos, "EndOfStatement expected!");
-            return ast;
+            std::vector<TAst> statements;
+            return statements;
         }
 
         size_t Line() {
