@@ -5,8 +5,6 @@
 #include <iostream>
 #include <functional>
 
-#include "token.hpp"
-#include "parser.hpp"
 #include "binder.hpp"
 
 namespace z2h {
@@ -31,16 +29,6 @@ namespace z2h {
         return result;
     }
 
-    template <typename TAst> 
-    class Token;
-
-    template <typename TAst, typename TParser> 
-    class Parser;
-
-    template <typename TAst> 
-    class Symbol;
-
-    template <typename TAst>
     class Symbol {
     public:
 
@@ -48,10 +36,10 @@ namespace z2h {
         size_t          lbp;
         std::string     pattern;
 
-        ScanFunc<TAst>  Scan;
-        StdFunc<TAst>   Std;
-        NudFunc<TAst>   Nud;
-        LedFunc<TAst>   Led;
+        ScanFunc        Scan;
+        StdFunc         Std;
+        NudFunc         Nud;
+        LedFunc         Led;
 
         Symbol()
             : type(0)
@@ -63,7 +51,7 @@ namespace z2h {
             , Led(nullptr) {
         }
 
-        Symbol(size_t type, size_t lbp, std::string pattern, ScanFunc<TAst> scan, StdFunc<TAst> std, NudFunc<TAst> nud, LedFunc<TAst> led)
+        Symbol(size_t type, size_t lbp, std::string pattern, ScanFunc scan, StdFunc std, NudFunc nud, LedFunc led)
             : type(type)
             , lbp(lbp)
             , pattern(pattern)
@@ -96,7 +84,6 @@ namespace z2h {
                 << " Led=" << (symbol.Led != nullptr ? "true" : "null")
                 << ")";
         }
-
     };
 }
 

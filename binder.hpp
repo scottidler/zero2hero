@@ -4,103 +4,90 @@
 #include <stddef.h>
 #include <functional>
 
-#include "token.hpp"
-#include "symbol.hpp"
-#include "parser.hpp"
-
 using namespace std::placeholders;
 
 namespace z2h {
 
-    template <typename TAst> 
+    class Ast;
     class Token;
-
-    template <typename TAst> 
     class Symbol;
 
-    template <typename TAst, typename TParser> 
+    template <typename TParser>
     class Parser;
 
-    template <typename TAst>
-    using StdFunc = std::function<TAst()>;
+    using StdFunc = std::function<Ast *()>;
+    using NudFunc = std::function<Ast *(Token *token)>;
+    using LedFunc = std::function<Ast *(Ast *left, Token *token)>;
+    using ScanFunc = std::function<Token *(Symbol *symbol, const std::string &source, size_t lbp)>;
 
-    template <typename TAst>
-    using NudFunc = std::function<TAst(Token<TAst> *token)>;
+    template <typename TParser>
+    using StdPtr = Ast * (TParser::*)();
 
-    template <typename TAst>
-    using LedFunc = std::function<TAst(TAst left, Token<TAst> *token)>;
+    template <typename TParser>
+    using NudPtr = Ast * (TParser::*)(Token *token);
 
-    template <typename TAst>
-    using ScanFunc = std::function<Token<TAst> *(Symbol<TAst> *symbol, const std::string &source, size_t lbp)>;
+    template <typename TParser>
+    using LedPtr = Ast * (TParser::*)(Ast *left, Token *token);
 
-    template <typename TAst, typename TParser>
-    using StdPtr = TAst (TParser::*)();
+    template <typename TParser>
+    using ScanPtr = Token * (TParser::*)(Symbol *symbol, const std::string &source, size_t lbp);
 
-    template <typename TAst, typename TParser>
-    using NudPtr = TAst (TParser::*)(Token<TAst> *token);
-
-    template <typename TAst , typename TParser>
-    using LedPtr = TAst (TParser::*)(TAst left, Token<TAst> *token);
-
-    template <typename TAst, typename TParser>
-    using ScanPtr = Token<TAst> * (TParser::*)(Symbol<TAst> *symbol, const std::string &source, size_t lbp);
-
-    template <typename TAst, typename TParser>
+    template <typename TParser>
     struct Binder {
 
         static constexpr nullptr_t Nullptr = nullptr;
 
-        StdFunc<TAst> BindStd(nullptr_t method) {
+        StdFunc BindStd(nullptr_t method) {
             return nullptr;
         }
 
-        StdFunc<TAst> BindStd(const nullptr_t *method) {
+        StdFunc BindStd(const nullptr_t *method) {
             return nullptr;
         }
 
-        StdFunc<TAst> BindStd(StdPtr<TAst, TParser> method) {
+        StdFunc BindStd(StdPtr<TParser> method) {
             return std::bind(method, static_cast<TParser *>(this));
         }
 
-        NudFunc<TAst> BindNud(nullptr_t method) {
+        NudFunc BindNud(nullptr_t method) {
             return nullptr;
         }
 
-        NudFunc<TAst> BindNud(const nullptr_t *method) {
+        NudFunc BindNud(const nullptr_t *method) {
             return nullptr;
         }
 
-        NudFunc<TAst> BindNud(NudPtr<TAst, TParser> method) {
+        NudFunc BindNud(NudPtr<TParser> method) {
             return std::bind(method, static_cast<TParser *>(this), _1);
         }
 
-        LedFunc<TAst> BindLed(nullptr_t method) {
+        LedFunc BindLed(nullptr_t method) {
             return nullptr;
         }
 
-        LedFunc<TAst> BindLed(const nullptr_t *method) {
+        LedFunc BindLed(const nullptr_t *method) {
             return nullptr;
         }
 
-        LedFunc<TAst> BindLed(LedPtr<TAst, TParser> method) {
+        LedFunc BindLed(LedPtr<TParser> method) {
             return std::bind(method, static_cast<TParser *>(this), _1, _2);
         }
 
-        ScanFunc<TAst> BindScan(nullptr_t method) {
+        ScanFunc BindScan(nullptr_t method) {
             return nullptr;
         }
 
-        ScanFunc<TAst> BindScan(const nullptr_t *method) {
+        ScanFunc BindScan(const nullptr_t *method) {
             return nullptr;
         }
 
-        ScanFunc<TAst> BindScan(ScanPtr<TAst, TParser> method) {
+        ScanFunc BindScan(ScanPtr<TParser> method) {
             return std::bind(method, static_cast<TParser *>(this), _1, _2, _3);
         }
     };
 
-    template <typename TAst, typename TParser>
-    constexpr nullptr_t Binder<TAst, TParser>::Nullptr;
+    template <typename TParser>
+    constexpr nullptr_t Binder<TParser>::Nullptr;
 
 }
 

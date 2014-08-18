@@ -11,26 +11,20 @@
 #include <sys/stat.h>
 #include <functional>
 
-#include "token.hpp"
 #include "symbol.hpp"
+#include "token.hpp"
 #include "binder.hpp"
 
 using namespace std::placeholders;
 
 namespace z2h {
 
-    template <typename TAst>
-    class Token;
-
-    template <typename TAst>
-    class Symbol;
-
-    template <typename TAst, typename TParser>
-    struct Parser : public Binder<TAst, TParser> {
+    template <typename TParser>
+    struct Parser : public Binder<TParser> {
 
         std::string                 source;
         size_t                      position;
-        std::vector<Token<TAst> *>  tokens;
+        std::vector<Token *>        tokens;
         size_t                      index;
 
         ~Parser() {
@@ -49,15 +43,15 @@ namespace z2h {
         virtual std::exception Exception(const char *file, size_t line, const std::string &message = "") = 0;
 
         // Symbols must be defined by the inheriting parser
-        virtual std::vector<Symbol<TAst> *> Symbols() = 0;
+        virtual std::vector<Symbol *> Symbols() = 0;
 
         // the default for the eof symbol is first in in the list of symbols
-        virtual Symbol<TAst> * EofSymbol() {
+        virtual Symbol * EofSymbol() {
             return Symbols()[0];
         }
 
         // the default for the eos symbol is second in in the list of symbols
-        virtual Symbol<TAst> * EosSymbol() {
+        virtual Symbol * EosSymbol() {
             return Symbols()[1];
         }
 
@@ -70,10 +64,10 @@ namespace z2h {
             return text;
         }
 
-        virtual Token<TAst> * Scan() {
+        virtual Token * Scan() {
 
             auto eof = EofSymbol();
-            Token<TAst> *match = nullptr;
+            Token *match = nullptr;
             if (position < source.length()) {
                 for (auto symbol : Symbols()) {
                     auto token = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
@@ -92,11 +86,11 @@ namespace z2h {
                 }
                 return match;
             }
-            return new Token<TAst>(eof, "EOF", position, 0, false); //eof
+            return new Token(eof, "EOF", position, 0, false); //eof
         }
 
-        virtual Token<TAst> * LookAhead(size_t &distance, bool skips = false) {
-            Token<TAst> *token = nullptr;
+        virtual Token * LookAhead(size_t &distance, bool skips = false) {
+            Token *token = nullptr;
             auto i = index;
             while (distance) {
                 if (i < tokens.size()) {
@@ -116,7 +110,7 @@ namespace z2h {
             return token;
         }
 
-        virtual Token<TAst> * Consume(Symbol<TAst> *expected = nullptr, const std::string &message = "") {
+        virtual Token * Consume(Symbol *expected = nullptr, const std::string &message = "") {
             size_t distance = 1;
             auto token = LookAhead(distance);
             index += distance;
@@ -129,12 +123,12 @@ namespace z2h {
             return token;
         }
 
-        std::vector<Token<TAst> *> TokenizeFile(const std::string &filename) {
+        std::vector<Token *> TokenizeFile(const std::string &filename) {
             auto source = Open(filename);
             return Tokenize(source);
         }
 
-        std::vector<Token<TAst> *> Tokenize(std::string source) {
+        std::vector<Token *> Tokenize(std::string source) {
             this->index = 0;
             this->source = source;
             auto eof = EofSymbol();
@@ -145,23 +139,23 @@ namespace z2h {
             return tokens;
         }
 
-        TAst ParseFile(const std::string &filename) {
+        Ast * ParseFile(const std::string &filename) {
             auto source = Open(filename);
             return Parse(source);
         }
 
-        virtual TAst Parse(std::string source) {
+        virtual Ast * Parse(std::string source) {
             this->index = 0;
             this->source = source;
             return Statement();
         }
 
-        virtual TAst Expression(size_t rbp = 0) {
+        virtual Ast * Expression(size_t rbp = 0) {
 
             auto *curr = Consume();
             size_t distance = 1;
             auto *next = LookAhead(distance);
-            TAst left = curr->symbol->Nud(curr);
+            Ast *left = curr->symbol->Nud(curr);
             while (rbp < next->symbol->lbp) {
                 curr = Consume();
                 size_t distance = 1;
@@ -179,7 +173,7 @@ namespace z2h {
             return left;
         }
 
-        virtual TAst Statement() {
+        virtual Ast * Statement() {
             size_t distance = 1;
             auto *la1 = LookAhead(distance);
             if (nullptr != la1->symbol->Std) {
@@ -190,10 +184,10 @@ namespace z2h {
             return ast;
         }
 
-        virtual std::vector<TAst> Statements() {
+        virtual std::vector<Ast *> Statements() {
             auto eos = EosSymbol();
             Consume(eos, "EndOfStatement expected!");
-            std::vector<TAst> statements;
+            std::vector<Ast *> statements;
             return statements;
         }
 

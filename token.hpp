@@ -4,39 +4,28 @@
 #include <string>
 #include <iostream>
 
-#include "parser.hpp"
 #include "symbol.hpp"
 
 namespace z2h {
 
-    template<typename TAst>
-    class Ast;
-
-    template<typename TAst, typename TParser>
-    class Parser;
-
-    template<typename TAst>
     class Symbol;
 
-    template<typename TAst>
-    class Token {
-    public:
-
-        Symbol<TAst>    *symbol;
+    struct Token {
+        Symbol          *symbol;
         std::string     value;
         size_t          position;
         size_t          length;
         bool            skip;
 
         Token()
-            : symbol(new Symbol<TAst>())
+            : symbol(new Symbol())
             , value("")
             , position(0)
             , length(0)
             , skip(false) {
         }
 
-        Token(Symbol<TAst> *symbol, std::string value, size_t position, size_t length, bool skip = false)
+        Token(Symbol *symbol, std::string value, size_t position, size_t length, bool skip = false)
             : symbol(symbol)
             , value(value)
             , position(position)
