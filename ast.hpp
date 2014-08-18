@@ -12,7 +12,7 @@ namespace z2h {
     struct Ast {
         Token *token;
         
-        virtual ~Ast() = 0;
+        //virtual ~Ast() = 0;
         Ast(Token *token)
             : token(token) {}
 
