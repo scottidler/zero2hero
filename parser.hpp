@@ -64,6 +64,33 @@ namespace z2h {
             return text;
         }
 
+        std::vector<Token *> TokenizeFile(const std::string &filename) {
+            auto source = Open(filename);
+            return Tokenize(source);
+        }
+
+        std::vector<Token *> Tokenize(std::string source) {
+            this->index = 0;
+            this->source = source;
+            auto eof = EofSymbol();
+            auto token = Consume();
+            while (*eof != *token->symbol) {
+                token = Consume();
+            }
+            return tokens;
+        }
+
+        virtual std::vector<Ast *> ParseFile(const std::string &filename) {
+            auto source = Open(filename);
+            return Parse(source);
+        }
+
+        virtual std::vector<Ast *> Parse(std::string source) {
+            this->index = 0;
+            this->source = source;
+            return Statements();
+        }
+
         virtual Token * Scan() {
 
             auto eof = EofSymbol();
@@ -110,44 +137,26 @@ namespace z2h {
             return token;
         }
 
-        virtual Token * Consume(Symbol *expected = nullptr, const std::string &message = "") {
+        virtual Token * Consume(Symbol *expected = nullptr) {
+            if (expected) {
+                return Consume({expected});
+            }
+            return Consume({});
+        }
+        virtual Token * Consume(std::initializer_list<Symbol *> expecteds) {
             size_t distance = 1;
             auto token = LookAhead(distance);
+            if (expecteds.size()) {
+                for (auto expected : expecteds) {
+                    if (expected && expected == token->symbol) {
+                        index += distance;
+                        return token;
+                    }
+                }
+                return nullptr;
+            }
             index += distance;
-            if (nullptr != expected && *expected != *token->symbol) {
-                std::cout << "expected      = " << *expected << std:: endl;
-                std::cout << "token->symbol = " << *token->symbol << std:: endl;
-                std::cout << "message=" << message << std::endl;
-                throw Exception(__FILE__, __LINE__, (message.empty() ? "consume failed" : message));
-            }
             return token;
-        }
-
-        std::vector<Token *> TokenizeFile(const std::string &filename) {
-            auto source = Open(filename);
-            return Tokenize(source);
-        }
-
-        std::vector<Token *> Tokenize(std::string source) {
-            this->index = 0;
-            this->source = source;
-            auto eof = EofSymbol();
-            auto token = Consume();
-            while (*eof != *token->symbol) {
-                token = Consume();
-            }
-            return tokens;
-        }
-
-        Ast * ParseFile(const std::string &filename) {
-            auto source = Open(filename);
-            return Parse(source);
-        }
-
-        virtual Ast * Parse(std::string source) {
-            this->index = 0;
-            this->source = source;
-            return Statement();
         }
 
         virtual Ast * Expression(size_t rbp = 0) {
@@ -160,7 +169,6 @@ namespace z2h {
                 curr = Consume();
                 size_t distance = 1;
                 next = LookAhead(distance);
-
                 if (nullptr == curr->symbol->Led) {
                     std::cout << __LINE__ << "no Led: curr=" << *curr << std::endl;
                     std::ostringstream out;
@@ -185,9 +193,13 @@ namespace z2h {
         }
 
         virtual std::vector<Ast *> Statements() {
-            auto eos = EosSymbol();
-            Consume(eos, "EndOfStatement expected!");
             std::vector<Ast *> statements;
+            auto eos = EosSymbol();
+            auto statement = Statement();
+            while (statement) {
+                statements.push_back(statement);
+                statement = Consume(eos) ? Statement() : nullptr;
+            }
             return statements;
         }
 
