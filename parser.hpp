@@ -143,6 +143,7 @@ namespace z2h {
             }
             return Consume({});
         }
+
         virtual Token * Consume(std::initializer_list<Symbol *> expecteds) {
             size_t distance = 1;
             auto token = LookAhead(distance);
@@ -167,16 +168,15 @@ namespace z2h {
             Ast *left = curr->symbol->Nud(curr);
             while (rbp < next->symbol->lbp) {
                 curr = Consume();
-                size_t distance = 1;
-                next = LookAhead(distance);
                 if (nullptr == curr->symbol->Led) {
                     std::cout << __LINE__ << "no Led: curr=" << *curr << std::endl;
                     std::ostringstream out;
                     out << "unexpected: nullptr==Led curr=" << *curr;
                     throw Exception(__FILE__, __LINE__, out.str());
                 }
-
                 left = curr->symbol->Led(left, curr);
+                size_t distance = 1;
+                next = LookAhead(distance);
             }
             return left;
         }
