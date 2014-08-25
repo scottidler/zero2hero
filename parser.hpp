@@ -160,12 +160,8 @@ namespace z2h {
             size_t distance = 1;
             auto token = LookAhead(distance);
             if (expectations.size()) {
-                std::cout << "expectations.size()=" << expectations.size() << std::endl;
                 for (auto expectation : expectations) {
                     if (expectation) {
-                        std::cout << "expectation   = " << *expectation << std::endl;
-                        std::cout << "token->symbol = " << *token->symbol << std::endl;
-                        std::cout << "expectation=" << expectation << " == token->symbol=" << token->symbol << std::endl;
                         if (expectation == token->symbol) {
                             index += distance;
                             return token;
