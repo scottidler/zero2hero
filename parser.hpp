@@ -88,7 +88,8 @@ namespace z2h {
         virtual std::vector<Ast *> Parse(std::string source) {
             this->index = 0;
             this->source = source;
-            return Statements();
+            return {Statement()};
+            //return Statements(); FIXME: return this back to normal after fixing the bug... -sai
         }
 
         virtual Token * Scan() {
@@ -113,6 +114,7 @@ namespace z2h {
                 }
                 return match;
             }
+            std::cout << "FAILED SCAN" << std::endl;
             return new Token(eof, "EOF", position, 0, false); //eof
         }
 
@@ -137,6 +139,16 @@ namespace z2h {
             return token;
         }
 
+        Token * LookAhead1() {
+            size_t distance = 1;
+            return this->LookAhead(distance);
+        }
+
+        Token * LookAhead2() {
+            size_t distance = 2;
+            return this->LookAhead(distance);
+        }
+
         virtual Token * Consume(Symbol *expected = nullptr) {
             if (expected) {
                 return Consume({expected});
@@ -144,15 +156,27 @@ namespace z2h {
             return Consume({});
         }
 
-        virtual Token * Consume(std::initializer_list<Symbol *> expecteds) {
+        virtual Token * Consume(std::initializer_list<Symbol *> expectations) {
             size_t distance = 1;
             auto token = LookAhead(distance);
-            if (expecteds.size()) {
-                for (auto expected : expecteds) {
+            if (expectations.size()) {
+                std::cout << "expectations.size()=" << expectations.size() << std::endl;
+                for (auto expectation : expectations) {
+                    if (expectation) {
+                        std::cout << "expectation   = " << *expectation << std::endl;
+                        std::cout << "token->symbol = " << *token->symbol << std::endl;
+                        std::cout << "expectation=" << expectation << " == token->symbol=" << token->symbol << std::endl;
+                        if (expectation == token->symbol) {
+                            index += distance;
+                            return token;
+                        }
+                    }
+                    /*
                     if (expected && expected == token->symbol) {
                         index += distance;
                         return token;
                     }
+                    */
                 }
                 return nullptr;
             }
