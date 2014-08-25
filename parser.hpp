@@ -88,8 +88,7 @@ namespace z2h {
         virtual std::vector<Ast *> Parse(std::string source) {
             this->index = 0;
             this->source = source;
-            return {Statement()};
-            //return Statements(); FIXME: return this back to normal after fixing the bug... -sai
+            return Statements();
         }
 
         virtual Token * Scan() {
@@ -161,18 +160,10 @@ namespace z2h {
             auto token = LookAhead(distance);
             if (expectations.size()) {
                 for (auto expectation : expectations) {
-                    if (expectation) {
-                        if (expectation == token->symbol) {
-                            index += distance;
-                            return token;
-                        }
-                    }
-                    /*
-                    if (expected && expected == token->symbol) {
+                    if (expectation && expectation == token->symbol) {
                         index += distance;
                         return token;
                     }
-                    */
                 }
                 return nullptr;
             }
@@ -184,8 +175,8 @@ namespace z2h {
 
             auto *curr = Consume();
             size_t distance = 1;
-            auto *next = LookAhead(distance);
             Ast *left = curr->symbol->Nud(curr);
+            auto *next = LookAhead(distance);
             while (rbp < next->symbol->lbp) {
                 curr = Consume();
                 if (nullptr == curr->symbol->Led) {
