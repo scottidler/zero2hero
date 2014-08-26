@@ -113,7 +113,6 @@ namespace z2h {
                 }
                 return match;
             }
-            std::cout << "FAILED SCAN" << std::endl;
             return new Token(eof, "EOF", position, 0, false); //eof
         }
 
