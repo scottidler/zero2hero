@@ -74,7 +74,7 @@ namespace z2h {
             this->source = source;
             auto eof = EofSymbol();
             auto token = Consume();
-            while (*eof != *token->symbol) {
+            while (eof != token->symbol) {
                 token = Consume();
             }
             return tokens;
