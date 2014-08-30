@@ -64,33 +64,6 @@ namespace z2h {
             return text;
         }
 
-        std::vector<Token *> TokenizeFile(const std::string &filename) {
-            auto source = Open(filename);
-            return Tokenize(source);
-        }
-
-        std::vector<Token *> Tokenize(std::string source) {
-            this->index = 0;
-            this->source = source;
-            auto eof = EofSymbol();
-            auto token = Consume();
-            while (eof != token->symbol) {
-                token = Consume();
-            }
-            return tokens;
-        }
-
-        virtual std::vector<Ast *> ParseFile(const std::string &filename) {
-            auto source = Open(filename);
-            return Parse(source);
-        }
-
-        virtual std::vector<Ast *> Parse(std::string source) {
-            this->index = 0;
-            this->source = source;
-            return Statements();
-        }
-
         virtual Token * Scan() {
 
             auto eof = EofSymbol();
