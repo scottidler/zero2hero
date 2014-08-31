@@ -147,6 +147,10 @@ namespace z2h {
 
             auto *curr = Consume();
             size_t distance = 1;
+            if (!curr->symbol->Nud) {
+                --index;
+                return nullptr;
+            }
             Ast *left = curr->symbol->Nud(curr);
             auto *next = LookAhead(distance);
             while (rbp < next->symbol->lbp) {
