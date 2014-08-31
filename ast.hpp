@@ -13,6 +13,7 @@ namespace z2h {
         Token *token;
         
         //virtual ~Ast() = 0;
+        virtual ~Ast() {}
         Ast(Token *token = nullptr)
             : token(token) {}
 
