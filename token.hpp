@@ -39,7 +39,7 @@ namespace z2h {
 
         friend std::ostream & operator<<(std::ostream &out, const Token &token) {
             return out
-                << "(Token: value=" << token.value
+                << "(Token: value=" << escape(token.value)
                 << " position=" << token.position
                 << " length=" << token.length
                 << " skip=" << (token.skip ? "true" : "false")
