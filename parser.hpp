@@ -69,8 +69,9 @@ namespace z2h {
             auto eof = EofSymbol();
             Token *match = nullptr;
             if (position < source.length()) {
+                auto text = source.substr(position, source.length() - position);
                 for (auto symbol : Symbols()) {
-                    auto token = symbol->Scan(symbol, source.substr(position, source.length() - position), position);
+                    auto token = symbol->Scan(symbol, text, position);
                     if (nullptr == match) {
                         match = token;
                     }
