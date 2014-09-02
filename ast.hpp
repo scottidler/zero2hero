@@ -25,5 +25,41 @@ namespace z2h {
         }
     };
 
+    struct BinaryAst : public Ast {
+        Ast *left;
+        Ast *right;
+
+        ~BinaryAst() {}
+        BinaryAst(Token *token, Ast *left, Ast *right)
+            : Ast(token)
+            , left(left)
+            , right(right) {}
+
+    protected:
+        virtual void Print(std::ostream &os) const {
+            os << "(" << token->value << " " << *left << " " << *right << ")";
+        }
+    };
+
+    struct VectorAst : public Ast {
+        std::vector<Ast *> asts;
+        std::string name;
+
+        ~VectorAst() {}
+        VectorAst(std::vector<Ast *> asts, std::string name = "")
+            : Ast(token)
+            , asts(asts)
+            , name(name) {}
+
+    protected:
+        virtual void Print(std::ostream &os) const {
+            os << "(" << name;
+            for (auto ast : asts) {
+                os << " " << *ast;
+            }
+            os << ")";
+        }
+    };
+
 }
 #endif /*__Z2H_AST__*/
