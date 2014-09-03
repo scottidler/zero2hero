@@ -17,6 +17,10 @@ namespace z2h {
         Ast(Token *token = nullptr)
             : token(token) {}
 
+        virtual std::vector<Ast *> Vectorize() {
+            return { this };
+        }
+
     protected:
         virtual void Print(std::ostream &os) const = 0;
         friend std::ostream & operator <<(std::ostream &os, const Ast &ast) {
@@ -35,6 +39,13 @@ namespace z2h {
             , left(left)
             , right(right) {}
 
+        std::vector<Ast *> Vectorize() {
+            auto lefts = left->Vectorize();
+            auto rights = right->Vectorize();
+            lefts.insert(lefts.end(), rights.begin(), rights.end());
+            return lefts;
+        }
+
     protected:
         virtual void Print(std::ostream &os) const {
             os << "(" << token->value << " " << *left << " " << *right << ")";
@@ -50,6 +61,10 @@ namespace z2h {
             : Ast(token)
             , asts(asts)
             , name(name) {}
+
+        std::vector<Ast *> Vectorize() {
+            return asts;
+        }
 
     protected:
         virtual void Print(std::ostream &os) const {
