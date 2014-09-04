@@ -10,12 +10,8 @@ namespace z2h {
     class Token;
 
     struct Ast {
-        Token *token;
-        
-        //virtual ~Ast() = 0;
         virtual ~Ast() {}
-        Ast(Token *token = nullptr)
-            : token(token) {}
+        Ast() {}
 
         virtual std::vector<Ast *> Vectorize() {
             return { this };
@@ -29,13 +25,47 @@ namespace z2h {
         }
     };
 
-    struct BinaryAst : public Ast {
+    struct NullAst : public Ast {
+        virtual ~NullAst() {}
+        NullAst() {}
+    protected:
+        void Print(std::ostream &os) const {
+            os << "( )";
+        }
+    };
+
+    struct ValueAst : public Ast {
+        std::string name;
+        Token *token;
+        virtual ~ValueAst () {}
+        ValueAst(Token *token)
+            : name("")
+            , token(token) {}
+        ValueAst(std::string name, Token *token)
+            : name(name)
+            , token(token) {}
+    protected:
+        void Print(std::ostream &os) const {
+            os << "(";
+            if (name.empty())
+                os << token->symbol->pattern;
+            else
+                os << name;
+            os << ")";
+        }
+    };
+
+    struct BinaryAst : public ValueAst {
         Ast *left;
         Ast *right;
 
         ~BinaryAst() {}
         BinaryAst(Token *token, Ast *left, Ast *right)
-            : Ast(token)
+            : ValueAst(token)
+            , left(left)
+            , right(right) {}
+        BinaryAst(std::string name, Token *token, Ast *left, Ast *right)
+            : ValueAst(name, token)
             , left(left)
             , right(right) {}
 
@@ -52,15 +82,16 @@ namespace z2h {
         }
     };
 
-    struct VectorAst : public Ast {
+    struct VectorAst : public ValueAst {
         std::vector<Ast *> asts;
-        std::string name;
 
         ~VectorAst() {}
-        VectorAst(std::vector<Ast *> asts, std::string name = "")
-            : Ast(token)
-            , asts(asts)
-            , name(name) {}
+        VectorAst(std::vector<Ast *> asts)
+            : ValueAst(token)
+            , asts(asts) {}
+        VectorAst(std::string name, std::vector<Ast *> asts)
+            : ValueAst(name, token)
+            , asts(asts) {}
 
         std::vector<Ast *> Vectorize() {
             return asts;
