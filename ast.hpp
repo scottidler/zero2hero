@@ -5,9 +5,11 @@
 #include <vector>
 #include <iostream>
 
+#include "token.hpp"
+
 namespace z2h {
 
-    class Token;
+    //class Token;
 
     struct Ast {
         virtual ~Ast() {}

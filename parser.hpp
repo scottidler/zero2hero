@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <functional>
 
+#include "ast.hpp"
 #include "symbol.hpp"
 #include "token.hpp"
 #include "binder.hpp"
@@ -121,9 +122,9 @@ namespace z2h {
             return this->LookAhead(distance);
         }
 
-        virtual Token * Consume(Symbol *expected = nullptr) {
-            if (expected) {
-                return Consume({expected});
+        virtual Token * Consume(Symbol *expectation = nullptr) {
+            if (expectation) {
+                return Consume({expectation});
             }
             return Consume({});
         }
@@ -150,7 +151,7 @@ namespace z2h {
             size_t distance = 1;
             if (!curr->symbol->Nud) {
                 --index;
-                return nullptr;
+                return new NullAst();
             }
             Ast *left = curr->symbol->Nud(curr);
             auto *next = LookAhead(distance);
