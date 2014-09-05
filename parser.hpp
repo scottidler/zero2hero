@@ -22,10 +22,10 @@ namespace z2h {
     template <typename TParser>
     struct Parser : public Binder<TParser> {
 
-        std::string                 source;
-        size_t                      position;
-        std::vector<Token *>        tokens;
-        size_t                      index;
+        std::string             source;
+        size_t                  position;
+        std::vector<Token *>    tokens;
+        size_t                  index;
 
         ~Parser() {
             while (!tokens.empty())
@@ -146,32 +146,27 @@ namespace z2h {
 
         virtual Ast * Expression(size_t rbp = 0) {
 
-            auto *curr = Consume();
-            size_t distance = 1;
+            auto curr = Consume();
             if (!curr->symbol->Nud) {
                 --index;
                 return nullptr;
             }
             Ast *left = curr->symbol->Nud(curr);
-            auto *next = LookAhead(distance);
+            auto next = LookAhead1();
             while (rbp < next->symbol->lbp) {
                 curr = Consume();
-                if (nullptr == curr->symbol->Led) {
-                    std::cout << __LINE__ << "no Led: curr=" << *curr << std::endl;
-                    std::ostringstream out;
-                    out << "unexpected: nullptr==Led curr=" << *curr;
-                    throw Exception(__FILE__, __LINE__, out.str());
+                if (!curr->symbol->Led) {
+                    --index;
+                    return nullptr;
                 }
                 left = curr->symbol->Led(left, curr);
-                size_t distance = 1;
-                next = LookAhead(distance);
+                next = LookAhead1();
             }
             return left;
         }
 
         virtual Ast * Statement() {
-            size_t distance = 1;
-            auto *la1 = LookAhead(distance);
+            auto la1 = LookAhead1();
             if (nullptr != la1->symbol->Std) {
                 Consume();
                 return la1->symbol->Std();
