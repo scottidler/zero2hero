@@ -17,6 +17,9 @@ namespace z2h {
         Ast(Token *token = nullptr)
             : token(token) {}
 
+        virtual size_t Size() const {
+            return 1;
+        }
         virtual std::vector<Ast *> Vectorize() {
             return { this };
         }
@@ -39,6 +42,9 @@ namespace z2h {
             , left(left)
             , right(right) {}
 
+        virtual size_t Size() const {
+            return (left ? left->Size() : 0) + (right ? right->Size() : 0);
+        }
         std::vector<Ast *> Vectorize() {
             auto lefts = left->Vectorize();
             auto rights = right->Vectorize();
@@ -62,8 +68,20 @@ namespace z2h {
             , asts(asts)
             , name(name) {}
 
+        virtual size_t Size() const {
+            size_t result = 0;
+            for (auto ast : asts)
+                result += ast->Size();
+            return result;
+        }
+
         std::vector<Ast *> Vectorize() {
-            return asts;
+            std::vector<Ast *> results;
+            for (auto ast : asts) {
+                auto astv = ast->Vectorize();
+                results.insert(results.end(), astv.begin(), astv.end());
+            }
+            return results;
         }
 
     protected:
