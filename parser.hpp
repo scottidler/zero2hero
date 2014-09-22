@@ -13,81 +13,35 @@
 
 #include "symbol.hpp"
 #include "token.hpp"
+#include "lexer.hpp"
 #include "binder.hpp"
-
-using namespace std::placeholders;
 
 namespace z2h {
 
     template <typename TParser>
     struct Parser : public Binder<TParser> {
 
-        std::string             source;
-        size_t                  position;
-        std::vector<Token *>    tokens;
-        size_t                  index;
+        Lexer                           *lexer;
+        std::vector<Token *>            tokens;
+        std::vector<Symbol *>           symbols;
+        size_t                          index;
 
-        ~Parser() {
+        virtual ~Parser() {
             while (!tokens.empty())
                 delete tokens.back(), tokens.pop_back();
         }
 
-        Parser()
-            : source("")
-            , position(0)
+        Parser(Lexer *lexer)
+            : lexer(lexer)
             , tokens({})
+            , symbols({})
             , index(0) {
         }
 
-        // Exception must be defined by the inheriting parser, throw exceptions defined there
-        virtual std::exception Exception(const char *file, size_t line, const std::string &message = "") = 0;
+        virtual Ast * Parse() = 0;
 
-        // Symbols must be defined by the inheriting parser
-        virtual std::vector<Symbol *> Symbols() = 0;
-
-        // the default for the eof symbol is first in in the list of symbols
-        virtual Symbol * EofSymbol() {
-            return Symbols()[0];
-        }
-
-        // the default for the eos symbol is second in in the list of symbols
-        virtual Symbol * EosSymbol() {
-            return Symbols()[1];
-        }
-
-        std::string Open(const std::string &filename) {
-            struct stat buffer;
-            if (stat(filename.c_str(), &buffer) != 0)
-                Exception(__FILE__, __LINE__, filename + " doesn't exist or is unreadable");
-            std::ifstream file(filename);
-            std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            return text;
-        }
-
-        virtual Token * Scan() {
-
-            auto eof = EofSymbol();
-            Token *match = nullptr;
-            if (position < source.length()) {
-                auto text = source.substr(position, source.length() - position);
-                for (auto symbol : Symbols()) {
-                    auto token = symbol->Scan(symbol, text, position);
-                    if (nullptr == match) {
-                        match = token;
-                    }
-                    else if (nullptr != token && (token->length > match->length || (token->symbol->lbp > match->symbol->lbp && token->length == match->length))) {
-                        delete match;
-                        match = token;
-                    } else {
-                        delete token;
-                    }
-                }
-                if (nullptr == match) {
-                    throw Exception(__FILE__, __LINE__, "Parser::Scan: invalid symbol");
-                }
-                return match;
-            }
-            return new Token(eof, "EOF", position, 0, false); //eof
+        Symbol * GetSymbol(size_t type) {
+            return symbols[type];
         }
 
         virtual Token * LookAhead(size_t &distance, bool skips = false) {
@@ -98,8 +52,8 @@ namespace z2h {
                     token = tokens[i];
                 }
                 else {
-                    token = Scan();
-                    position += token->length;
+                    token = lexer->Scan();
+                    lexer->position += token->length;
                     tokens.push_back(token);
                 }
                 if (skips || !token->skip) {
@@ -111,29 +65,29 @@ namespace z2h {
             return token;
         }
 
-        Token * LookAhead1() {
+        virtual Token * LookAhead1() {
             size_t distance = 1;
-            return this->LookAhead(distance);
+            return LookAhead(distance);
         }
 
-        Token * LookAhead2() {
+        virtual Token * LookAhead2() {
             size_t distance = 2;
-            return this->LookAhead(distance);
+            return LookAhead(distance);
         }
 
-        virtual Token * Consume(Symbol *expected = nullptr) {
-            if (expected) {
-                return Consume({expected});
+        virtual Token * Consume(size_t type = 0XDEADBEEF) {
+            if (type != 0XDEADBEEF) {
+                return Consume({type});
             }
             return Consume({});
         }
 
-        virtual Token * Consume(std::initializer_list<Symbol *> expectations) {
+        virtual Token * Consume(std::initializer_list<size_t> types) {
             size_t distance = 1;
             auto token = LookAhead(distance);
-            if (expectations.size()) {
-                for (auto expectation : expectations) {
-                    if (expectation && expectation == token->symbol) {
+            if (types.size()) {
+                for (auto type : types) {
+                    if (type != 0XDEADBEEF && type == token->type) {
                         index += distance;
                         return token;
                     }
@@ -147,19 +101,19 @@ namespace z2h {
         virtual Ast * Expression(size_t rbp = 0) {
 
             auto curr = Consume();
-            if (!curr->symbol->Nud) {
+            if (!GetSymbol(*curr)->Nud) {
                 --index;
                 return nullptr;
             }
-            Ast *left = curr->symbol->Nud(curr);
+            Ast *left = GetSymbol(*curr)->Nud(curr);
             auto next = LookAhead1();
-            while (rbp < next->symbol->lbp) {
+            while (rbp < GetSymbol(*next)->lbp) {
                 curr = Consume();
-                if (!curr->symbol->Led) {
+                if (!GetSymbol(*curr)->Led) {
                     --index;
                     return nullptr;
                 }
-                left = curr->symbol->Led(left, curr);
+                left = GetSymbol(*curr)->Led(left, curr);
                 next = LookAhead1();
             }
             return left;
@@ -167,9 +121,9 @@ namespace z2h {
 
         virtual Ast * Statement() {
             auto la1 = LookAhead1();
-            if (nullptr != la1->symbol->Std) {
+            if (nullptr != GetSymbol(*la1)->Std) {
                 Consume();
-                return la1->symbol->Std();
+                return GetSymbol(*la1)->Std();
             }
             auto ast = Expression();
             return ast;
@@ -177,7 +131,7 @@ namespace z2h {
 
         virtual std::vector<Ast *> Statements() {
             std::vector<Ast *> statements;
-            auto eos = EosSymbol();
+            size_t eos = 1;
             auto statement = Statement();
             while (statement) {
                 statements.push_back(statement);
@@ -186,16 +140,14 @@ namespace z2h {
             return statements;
         }
 
-        size_t Line() {
+        virtual size_t Line() {
             return 0;
         }
 
-        size_t Column() {
+        virtual size_t Column() {
             return 0;
         }
-        
     };
-
 }
 
 #endif /*__Z2H_PARSER__*/
