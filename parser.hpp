@@ -44,6 +44,11 @@ namespace z2h {
             return symbols[type];
         }
 
+        virtual bool LookAhead(size_t &distance, const size_t &type, bool skips = false) {
+            auto token = LookAhead(distance, skips);
+            return token->type == type;
+        }
+
         virtual Token * LookAhead(size_t &distance, bool skips = false) {
             Token *token = nullptr;
             auto i = index;
@@ -65,9 +70,19 @@ namespace z2h {
             return token;
         }
 
+        virtual bool LookAhead1(const size_t &type) {
+            size_t distance = 1;
+            return LookAhead(distance, type);
+        }
+
         virtual Token * LookAhead1() {
             size_t distance = 1;
             return LookAhead(distance);
+        }
+
+        virtual bool LookAhead2(const size_t &type) {
+            size_t distance = 2;
+            return LookAhead(distance, type);
         }
 
         virtual Token * LookAhead2() {

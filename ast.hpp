@@ -10,11 +10,14 @@ namespace z2h {
     class Token;
 
     struct Ast {
-        Token *token;
+        //Token *token;
+        std::string value;
         
         virtual ~Ast() {}
+        Ast(std::string value = "")
+            : value(value) {}
         Ast(Token *token = nullptr)
-            : token(token) {}
+            : Ast(token ? token->value : "") {}
 
         virtual size_t Size() const {
             return 1;
@@ -53,19 +56,20 @@ namespace z2h {
 
     protected:
         virtual void Print(std::ostream &os) const {
-            os << "(" << token->value << " " << *left << " " << *right << ")";
+            os << "(" << value << " " << *left << " " << *right << ")";
         }
     };
 
     struct VectorAst : public Ast {
         std::vector<Ast *> asts;
-        std::string name;
 
         ~VectorAst() {}
-        VectorAst(std::vector<Ast *> asts, std::string name = "")
+        VectorAst(std::string value, std::vector<Ast *> asts)
+            : Ast(value)
+            , asts(asts) {}
+        VectorAst(Token *token, std::vector<Ast *> asts)
             : Ast(token)
-            , asts(asts)
-            , name(name) {}
+            , asts(asts) {}
 
         virtual size_t Size() const {
             size_t result = 0;
@@ -85,7 +89,7 @@ namespace z2h {
 
     protected:
         virtual void Print(std::ostream &os) const {
-            os << "(" << name;
+            os << "(" << value;
             for (auto ast : asts) {
                 os << " " << *ast;
             }
