@@ -118,18 +118,16 @@ namespace z2h {
             auto currToken = Consume();
             auto currSymbol = GetSymbol(*currToken);
             if (!currSymbol->enabled || !currSymbol->Nud) {
-                std::cout << "skipping symbol=" << *currSymbol << std::endl;
                 --index;
                 return nullptr;
             }
             Ast *left = currSymbol->Nud(currToken);
             auto nextToken = LookAhead1();
             auto nextSymbol = GetSymbol(*nextToken);
-            while (rbp < nextSymbol->lbp) {
+            while (nextSymbol->enabled && rbp < nextSymbol->lbp) {
                 currToken = Consume();
                 currSymbol = GetSymbol(*currToken);
                 if (!currSymbol->enabled || !currSymbol->Led) {
-                    std::cout << "skipping symbol=" << *currSymbol << std::endl;
                     --index;
                     return nullptr;
                 }
