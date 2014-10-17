@@ -115,30 +115,37 @@ namespace z2h {
 
         virtual Ast * Expression(size_t rbp = 0) {
 
-            auto curr = Consume();
-            if (!GetSymbol(*curr)->Nud) {
+            auto currToken = Consume();
+            auto currSymbol = GetSymbol(*currToken);
+            if (!currSymbol->enabled || !currSymbol->Nud) {
+                std::cout << "skipping symbol=" << *currSymbol << std::endl;
                 --index;
                 return nullptr;
             }
-            Ast *left = GetSymbol(*curr)->Nud(curr);
-            auto next = LookAhead1();
-            while (rbp < GetSymbol(*next)->lbp) {
-                curr = Consume();
-                if (!GetSymbol(*curr)->Led) {
+            Ast *left = currSymbol->Nud(currToken);
+            auto nextToken = LookAhead1();
+            auto nextSymbol = GetSymbol(*nextToken);
+            while (rbp < nextSymbol->lbp) {
+                currToken = Consume();
+                currSymbol = GetSymbol(*currToken);
+                if (!currSymbol->enabled || !currSymbol->Led) {
+                    std::cout << "skipping symbol=" << *currSymbol << std::endl;
                     --index;
                     return nullptr;
                 }
-                left = GetSymbol(*curr)->Led(left, curr);
-                next = LookAhead1();
+                left = currSymbol->Led(left, currToken);
+                nextToken = LookAhead1();
+                nextSymbol = GetSymbol(*nextToken);
             }
             return left;
         }
 
         virtual Ast * Statement() {
-            auto la1 = LookAhead1();
-            if (nullptr != GetSymbol(*la1)->Std) {
+            auto laToken = LookAhead1();
+            auto laSymbol = GetSymbol(*laToken);
+            if (nullptr != laSymbol->Std) {
                 Consume();
-                return GetSymbol(*la1)->Std();
+                return laSymbol->Std();
             }
             auto ast = Expression();
             return ast;

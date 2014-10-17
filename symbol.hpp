@@ -16,33 +16,41 @@ namespace z2h {
 
     struct Symbol {
 
+        size_t      type;
         size_t      lbp;
         StdFunc     Std;
         NudFunc     Nud;
         LedFunc     Led;
+        bool        enabled;
 
         virtual ~Symbol() {}
 
         Symbol()
-            : lbp(0)
+            : type(0)
+            , lbp(0)
             , Std(nullptr)
             , Nud(nullptr)
-            , Led(nullptr) {
+            , Led(nullptr)
+            , enabled(true) {
         }
 
-        Symbol(size_t lbp, StdFunc std, NudFunc nud, LedFunc led)
-            : lbp(lbp)
+        Symbol(size_t type, size_t lbp, StdFunc std, NudFunc nud, LedFunc led)
+            : type(type)
+            , lbp(lbp)
             , Std(std)
             , Nud(nud)
-            , Led(led) {
+            , Led(led)
+            , enabled(true) {
         }
 
         friend std::ostream & operator<<(std::ostream &out, const Symbol &symbol) {
             return out
-                << "(Symbol: lbp=" << symbol.lbp
+                << "(Symbol: type=" << symbol.type
+                << " lbp=" << symbol.lbp
                 << " Std=" << (symbol.Std != nullptr ? "true" : "null")
                 << " Nud=" << (symbol.Nud != nullptr ? "true" : "null")
                 << " Led=" << (symbol.Led != nullptr ? "true" : "null")
+                << " enabled=" << (symbol.enabled ? "true" : "false")
                 << ")";
         }
     };
